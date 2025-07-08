@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Compound Calculator</title>
+    <!-- Font Awesome for caret icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Embedded CSS -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #2c2c2c; /* Dark background */
+            color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top for longer content */
+            min-height: 100vh;
+            margin: 20px;
+            box-sizing: border-box; /* Include padding/border in element's total width and height */
+        }
+
+        /* --- NEW MAIN LAYOUT CONTAINER --- */
+        .main-layout-container {
+            display: flex;
+            flex-wrap: wrap; /* Allows wrapping on smaller screens */
+            gap: 30px; /* Space between left and right columns */
+            width: 100%;
+            max-width: 1200px; /* Max width for the entire layout */
+            margin: 0 auto; /* Center the whole layout */
+        }
+
+        .calculator-left-side {
+            flex: 0 0 500px; /* Fixed width for the calculator side */
+            max-width: 100%; /* Ensures it doesn't overflow on small screens */
+            box-sizing: border-box;
+        }
+
+        .results-right-side {
+            flex: 1; /* Takes up remaining space */
+            min-width: 300px; /* Minimum width for results to prevent squishing */
+            background-color: #3b3b3b; /* Consistent background with calculator */
+            border-radius: 10px; /* Consistent border radius */
+            padding: 25px 30px; /* Consistent padding */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); /* Consistent shadow */
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column; /* Stack result sections vertically */
+            gap: 20px; /* Gap between result sections */
+        }
+
+        /* Adjust calculator-container to not have padding/shadow as parent handles it now */
+        .calculator-container {
+            background-color: #3b3b3b;
+            border-radius: 10px;
+            padding: 25px 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            width: 100%; /* Fill parent width */
+            box-sizing: border-box;
+        }
+
+        /* Existing styles below, with minor adjustments */
+
+        .input-section {
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+            color: #ccc;
+        }
+
+        input[type="number"],
+        input[type="date"],
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #555;
+            border-radius: 6px;
+            background-color: #4a4a4a;
+            color: #f0f0f0;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+
+        input[type="number"]:focus,
+        input[type="date"]:focus,
+        select:focus {
+            border-color: #ff9900;
+            outline: none;
+        }
+
+        .input-with-symbol {
+            display: flex;
+            align-items: center;
+            background-color: #4a4a4a;
+            border: 1px solid #555;
+            border-radius: 6px;
+            padding-left: 12px;
+        }
+
+        .input-with-symbol span {
+            color: #ccc;
+            font-size: 1.1em;
+            margin-right: 8px;
+        }
+
+        .input-with-symbol input {
+            border: none;
+            background-color: transparent;
+            flex-grow: 1;
+            padding-left: 0;
+        }
+
+        /* Styling for the select dropdown within rate-input-group */
+        .rate-input-group select {
+            border: none;
+            background-color: transparent;
+            flex-grow: 1;
+            padding: 10px 0;
+            -webkit-appearance: none; /* Remove default dropdown arrow */
+            -moz-appearance: none;
+            appearance: none;
+            cursor: pointer;
+            color: #f0f0f0; /* Ensure text color is visible */
+        }
+        /* Custom arrow for select, if needed, can be added here using background-image */
+
+        .currency-selector {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .currency-button {
+            padding: 8px 15px;
+            border: 1px solid #555;
+            border-radius: 6px;
+            background-color: #4a4a4a;
+            color: #ccc;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+
+        .currency-button.active {
+            background-color: #ff9900;
+            border-color: #ff9900;
+            color: #fff;
+        }
+
+        .rate-input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background-color: #4a4a4a; /* Consistent background for the whole group */
+            border: 1px solid #555; /* Consistent border for the whole group */
+            border-radius: 6px; /* Consistent border-radius for the whole group */
+            padding: 0 12px; /* Padding for the content inside */
+        }
+
+        .rate-input-group input {
+            border: none; /* Remove individual input border */
+            background-color: transparent; /* Transparent background for input */
+            flex-grow: 1;
+            width: auto;
+            padding: 10px 0; /* Adjust padding for input inside the group */
+        }
+        .rate-input-group input:focus {
+            outline: none; /* Remove outline as group has border */
+            border: none;
+        }
+
+
+        .rate-input-group .percentage {
+            color: #f0f0f0;
+            font-weight: bold;
+            flex-shrink: 0; /* Prevent from shrinking */
+        }
+
+        .rate-input-group .rate-period-label { /* New style for the fixed "daily" label */
+            color: #ccc;
+            font-size: 0.9em;
+            white-space: nowrap; /* Prevent "daily" from wrapping */
+            margin-left: 5px; /* Space between % and daily */
+        }
+
+        /* Duration specific styling for the new layout */
+        .duration-group .rate-input-group {
+            /* Inherits most styles from .rate-input-group */
+            /* No specific changes needed here beyond what .rate-input-group provides */
+        }
+        .duration-group .rate-input-group .rate-period-label {
+            /* This will style the "Days" label */
+            margin-left: 5px; /* Space between input and Days label */
+        }
+
+        /* New style for static reinvest rate */
+        .static-reinvest-rate {
+            color: #f0f0f0;
+            font-weight: bold;
+            padding: 10px 0; /* Match input padding */
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+            white-space: nowrap;
+        }
+        .static-reinvest-rate .rate-period-label { /* Ensure inner label styling is correct */
+            color: #ccc;
+            font-size: 0.9em;
+            margin-left: 5px;
+        }
+
+
+        .tooltip-icon {
+            background-color: #555;
+            color: #fff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.8em;
+            cursor: help;
+            flex-shrink: 0;
+        }
+
+        .calculate-button {
+            width: 100%;
+            padding: 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            margin-top: 20px;
+        }
+
+        .calculate-button:hover {
+            background-color: #45a049;
+        }
+
+        .remember-data-group {
+            display: flex;
+            align-items: center;
+            margin-top: 15px;
+            margin-bottom: 25px;
+        }
+
+        .remember-data-group input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+            transform: scale(1.2);
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            border: 2px solid #ff9900;
+            border-radius: 4px;
+            height: 18px;
+            width: 18px;
+            background-color: #4a4a4a;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .remember-data-group input[type="checkbox"]:checked {
+            background-color: #ff9900;
+            border-color: #ff9900;
+        }
+
+        .remember-data-group input[type="checkbox"]:checked::after {
+            content: '✔';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #3b3b3b;
+            font-size: 14px;
+            line-height: 1;
+        }
+
+        .remember-data-group label {
+            margin-bottom: 0;
+            font-size: 1em;
+            cursor: pointer;
+        }
+
+        .message-box { /* Styling for the new message box */
+            background-color: #dc3545; /* Red for error */
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            text-align: center;
+            opacity: 0; /* Start hidden */
+            transition: opacity 0.3s ease-in-out;
+        }
+        .message-box.show {
+            opacity: 1;
+        }
+
+
+        .results-section.new-layout {
+            background-color: transparent;
+            padding: 0;
+            margin-top: 0;
+            border-radius: 0;
+            box-shadow: none;
+            color: #f0f0f0;
+        }
+
+        .results-section.new-layout h2 {
+            color: #ff9900;
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .results-divider {
+            border: none;
+            border-top: 1px solid #555;
+            margin: 15px 0 25px 0;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px 30px;
+            align-items: baseline;
+        }
+
+        .grid-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .grid-item .result-label {
+            font-size: 0.9em;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+
+        .grid-item .result-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #f0f0f0; /* Default color for results - white */
+            margin-top: 0;
+        }
+
+        .result-value.green {
+            color: #4CAF50;
+        }
+        .result-value.orange {
+            color: #ff9900;
+        }
+        .result-value.blue {
+            color: #2196F3;
+        }
+
+        .right-align {
+            text-align: right;
+        }
+
+        .initial-balance {
+            margin-top: 25px;
+            text-align: right;
+        }
+
+        .initial-balance .result-label {
+            font-size: 0.9em;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+
+        /* Expandable Section Styling */
+        .expandable-section {
+            margin-top: 0; /* Handled by parent gap */
+            background-color: #2b2b2b;
+            border-radius: 8px;
+            overflow: hidden;
+            padding: 15px 20px;
+        }
+
+        .toggle-breakdown-btn {
+            width: 100%;
+            background-color: transparent;
+            color: #ff9900;
+            border: none;
+            padding: 10px 0;
+            font-size: 1.1em;
+            font-weight: bold;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: color 0.2s ease;
+        }
+
+        .toggle-breakdown-btn:hover {
+            color: #ffa52a;
+        }
+
+        .toggle-breakdown-btn i {
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-breakdown-btn.expanded i {
+            transform: rotate(180deg);
+        }
+
+        .breakdown-content {
+            max-height: 0;
+            overflow-y: auto;
+            transition: max-height 0.5s ease-out, padding 0.5s ease-out;
+            padding-top: 0;
+            padding-bottom: 0;
+            color: #f0f0f0;
+            font-size: 0.95em;
+        }
+
+        .breakdown-content.expanded {
+            max-height: 500px;
+            padding-top: 15px;
+            padding-bottom: 10px;
+        }
+
+        /* Table styles for breakdown */
+        .breakdown-table {
+            width: 100%;
+            border-collapse: collapse; /* Remove space between cells */
+            margin-top: 10px;
+        }
+
+        .breakdown-table th,
+        .breakdown-table td {
+            padding: 8px 10px;
+            text-align: right; /* Default to right align for numbers */
+            border-bottom: 1px solid #4a4a4a; /* Light separator */
+        }
+
+        .breakdown-table thead th {
+            background-color: #222; /* Darker header background */
+            color: #fff;
+            font-weight: normal;
+            font-size: 0.9em;
+            border-bottom: 2px solid #555; /* Stronger border below header */
+            position: sticky; /* Sticky header */
+            top: 0;
+            z-index: 1; /* Ensure header is above scrolling content */
+        }
+
+        /* Specific header colors for Earnings Breakdown */
+        .breakdown-table.earnings-breakdown th.header-date-day {
+            background-color: #007bff; /* Blue */
+            text-align: left; /* Left align date/day */
+        }
+        .breakdown-table.earnings-breakdown th.header-earnings {
+            background-color: #6c757d; /* Grey */
+        }
+        .breakdown-table.earnings-breakdown th.header-total-earnings {
+            background-color: #ff9900; /* Orange */
+        }
+        .breakdown-table.earnings-breakdown th.header-balance {
+            background-color: #28a745; /* Green */
+        }
+
+        /* Specific header colors for Trading Volume Breakdown */
+        .breakdown-table.trading-volume-breakdown th.header-date-day {
+            background-color: #007bff; /* Blue */
+            text-align: left; /* Left align date/day */
+        }
+        .breakdown-table.trading-volume-breakdown th.header-per-trade {
+            background-color: #6c757d; /* Grey */
+        }
+        .breakdown-table.trading-volume-breakdown th.header-per-day {
+            background-color: #ff9900; /* Orange */
+        }
+        .breakdown-table.trading-volume-breakdown th.header-total-volume {
+            background-color: #28a745; /* Green */
+        }
+
+
+        .breakdown-table tbody tr:last-child td {
+            border-bottom: none; /* No border for the last row */
+        }
+
+        .breakdown-table tbody tr:nth-child(even) {
+            background-color: #303030; /* Slightly different background for even rows */
+        }
+
+        /* Specific column styling for data cells */
+        .breakdown-table td.col-date-day {
+            text-align: left;
+            color: #f0f0f0;
+            font-weight: bold;
+        }
+        .breakdown-table td.col-earnings,
+        .breakdown-table td.col-per-trade { /* Apply to both earnings and per trade */
+            color: #f0f0f0; /* White for these columns */
+        }
+        .breakdown-table td.col-total-earnings,
+        .breakdown-table td.col-per-day { /* Apply to both total earnings and per day */
+            color: #ff9900; /* Orange for these columns */
+            font-weight: bold;
+        }
+        .breakdown-table td.col-balance,
+        .breakdown-table td.col-total-volume { /* Apply to both balance and total volume */
+            color: #2196F3; /* Blue for these columns */
+            font-weight: bold;
+        }
+
+        .no-data {
+            color: #aaa;
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        .results-section.trading-volume-results {
+            margin-top: 0; /* Handled by parent gap */
+            background-color: #2b2b2b;
+            border-radius: 8px;
+            padding: 15px 20px;
+        }
+
+        .trading-volume-results h3 {
+            color: #ff9900;
+        }
+
+        .small-note {
+            font-size: 0.85em;
+            color: #aaa;
+            margin-top: 10px;
+            line-height: 1.4;
+        }
+
+        /* --- Responsive adjustments for new main layout --- */
+        @media (max-width: 950px) {
+            .main-layout-container {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .calculator-left-side {
+                flex: auto;
+            }
+
+            .results-right-side {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .calculator-container {
+                padding: 20px;
+                margin: 10px;
+            }
+            .duration-inputs { /* This rule is now effectively for the single duration input group */
+                flex-direction: column;
+                gap: 10px;
+            }
+            .duration-field { /* This rule is now effectively for the single duration input group */
+                min-width: unset;
+                width: 100%;
+            }
+            .rate-input-group {
+                flex-wrap: wrap;
+            }
+            .rate-input-group input {
+                flex-grow: 1;
+                width: auto;
+            }
+            .rate-input-group .percentage {
+                flex-shrink: 0;
+            }
+            .rate-input-group .rate-period-label {
+                margin-left: 5px;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            .grid-item.right-align {
+                text-align: left;
+            }
+            .initial-balance {
+                text-align: left;
+            }
+
+            /* Table adjustments for small screens */
+            .breakdown-table,
+            .breakdown-table tbody,
+            .breakdown-table tr,
+            .breakdown-table td,
+            .breakdown-table th {
+                display: block; /* Stack table elements */
+                width: 100%; /* Take full width */
+                text-align: left; /* Align text left when stacked */
+            }
+            .breakdown-table thead {
+                display: none; /* Hide header on small screens */
+            }
+            .breakdown-table tr {
+                margin-bottom: 10px;
+                border: 1px solid #4a4a4a;
+                border-radius: 8px;
+                overflow: hidden;
+            }
+            .breakdown-table td {
+                border-bottom: 1px dotted #4a4a4a;
+                padding: 8px 15px;
+                position: relative;
+                padding-left: 50%; /* Space for pseudo-element label */
+            }
+            .breakdown-table td:last-child {
+                border-bottom: none;
+            }
+            .breakdown-table td::before {
+                content: attr(data-label); /* Use data-label for pseudo-element */
+                position: absolute;
+                left: 10px;
+                width: 45%;
+                padding-right: 10px;
+                white-space: nowrap;
+                font-weight: bold;
+                color: #bbb;
+            }
+        }
+    </style>
+    <!-- Font Awesome for caret icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="main-layout-container">
+        <div class="calculator-left-side">
+            <div class="calculator-container">
+                <div class="input-section">
+                    <div class="input-group">
+                        <label for="currency">Currency:</label>
+                        <div class="currency-selector" id="currencySelector">
+                            <button class="currency-button" data-currency-symbol="$">USD</button>
+                            <button class="currency-button" data-currency-symbol="€">EUR</button>
+                            <button class="currency-button" data-currency-symbol="USDT">USDT</button>
+                            <button class="currency-button" data-currency-symbol="USDC">USDC</button>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="principal">Principal amount:</label>
+                        <div class="input-with-symbol">
+                            <span id="principalSymbol">USDT</span>
+                            <input type="number" id="principal" value="1000" min="0" data-persist="true" autocomplete="off">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="interestRate">Interest rate:</label>
+                        <div class="rate-input-group">
+                            <select id="interestRate" data-persist="true">
+                                <option value="1.3" selected>1.3%</option>
+                                <option value="1.95">1.95%</option>
+                                <option value="2.6">2.6%</option>
+                                <option value="3.25">3.25%</option>
+                                <option value="3.9">3.9%</option>
+                            </select>
+                            <span class="percentage"> <span class="rate-period-label">daily</span></span>
+                        </div>
+                    </div>
+
+                    <div class="input-group duration-group">
+                        <label for="days">Duration:</label>
+                        <div class="rate-input-group">
+                            <input type="number" id="days" value="30" min="0" data-persist="true" autocomplete="off">
+                            <span class="rate-period-label">Days</span>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Daily reinvest rate</label>
+                        <div class="rate-input-group">
+                            <span class="static-reinvest-rate">100%</span>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Start date?</label>
+                        <input type="date" id="startDate" data-persist="true" autocomplete="off">
+                    </div>
+                    
+                    <div class="input-group remember-data-group">
+                        <input type="checkbox" id="rememberDataCheckbox" data-persist="true">
+                        <label for="rememberDataCheckbox">Remember data for next time</label>
+                    </div>
+
+                    <div id="messageBox" class="message-box"></div>
+
+                    <button class="calculate-button" id="calculateBtn">Calculate</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="results-right-side">
+            <div class="results-section new-layout">
+                <h2 id="projectionHeading">Projection for 0 days</h2>
+                <hr class="results-divider">
+
+                <div class="results-grid">
+                    <div class="grid-item">
+                        <p class="result-label">Investment value</p>
+                        <p class="result-value green" id="investmentValue">USDT 0.00</p>
+                    </div>
+                    <div class="grid-item right-align">
+                        <p class="result-label">Total days</p>
+                        <p class="result-value default-color" id="totalDaysResult">0</p>
+                    </div>
+
+                    <div class="grid-item">
+                        <p class="result-label">Total interest / earnings</p>
+                        <p class="result-value orange" id="totalEarnings">USDT 0.00</p>
+                    </div>
+                    <div class="grid-item right-align">
+                        <p class="result-label">Daily interest rate</p>
+                        <p class="result-value default-color" id="dailyEffectiveRate">0.0%</p>
+                    </div>
+
+                    <div class="grid-item">
+                        <p class="result-label">Percentage profit</p>
+                        <p class="result-value orange" id="percentageProfit">0.0%</p>
+                    </div>
+                    <div class="grid-item right-align">
+                        <p class="result-label">End date</p>
+                        <p class="result-value default-color" id="endDate">Jul 07, 2025</p>
+                    </div>
+                </div>
+                <div class="initial-balance">
+                    <p class="result-label">Initial balance on <span id="initialBalanceDate">Jul 07, 2025</span></p>
+                    <p class="result-value blue" id="initialBalance">USDT 0.00</p>
+                </div>
+            </div>
+
+            <div class="results-section trading-volume-results">
+                <h3>Trading Volume Results:</h3>
+                <p>Total Trading Volume: <span id="totalTradingVolume">USDT 0.00</span></p>
+                <p class="small-note" id="tradingVolumeNote"></p>
+            </div>
+
+            <!-- NEW TRADING VOLUME BREAKDOWN SECTION -->
+            <div class="expandable-section">
+                <button class="toggle-breakdown-btn" id="toggleTradingVolumeBreakdownBtn">
+                    Trading Volume Breakdown Daily <i class="fas fa-caret-down"></i>
+                </button>
+                <div class="breakdown-content" id="tradingVolumeBreakdownContent">
+                    <p class="no-data">No data to display. Calculate first.</p>
+                </div>
+            </div>
+
+            <div class="expandable-section">
+                <button class="toggle-breakdown-btn" id="toggleEarningsBreakdownBtn">
+                    Earnings Breakdown Daily <i class="fas fa-caret-down"></i>
+                </button>
+                <div class="breakdown-content" id="dailyBreakdownContent">
+                    <p class="no-data">No data to display. Calculate first.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Embedded JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Input Elements ---
+            const principalInput = document.getElementById('principal');
+            const interestRateSelect = document.getElementById('interestRate'); // Changed to select
+            const daysInput = document.getElementById('days');
+            const calculateBtn = document.getElementById('calculateBtn');
+            const rememberDataCheckbox = document.getElementById('rememberDataCheckbox');
+            const startDateInput = document.getElementById('startDate');
+
+            const currencyButtons = document.querySelectorAll('.currency-button');
+            const principalSymbol = document.getElementById('principalSymbol');
+
+            // --- Result Display Elements ---
+            const projectionHeading = document.getElementById('projectionHeading');
+            const investmentValueSpan = document.getElementById('investmentValue');
+            const totalEarningsSpan = document.getElementById('totalEarnings');
+            const percentageProfitSpan = document.getElementById('percentageProfit');
+            const totalDaysResultSpan = document.getElementById('totalDaysResult');
+            const dailyEffectiveRateSpan = document.getElementById('dailyEffectiveRate');
+            const endDateSpan = document.getElementById('endDate');
+            const initialBalanceDateSpan = document.getElementById('initialBalanceDate');
+            const initialBalanceSpan = document.getElementById('initialBalance');
+            const totalTradingVolumeSpan = document.getElementById('totalTradingVolume');
+            const tradingVolumeNoteSpan = document.getElementById('tradingVolumeNote');
+            const messageBox = document.getElementById('messageBox');
+
+            // --- Expandable Breakdown Elements ---
+            const toggleEarningsBreakdownBtn = document.getElementById('toggleEarningsBreakdownBtn');
+            const earningsBreakdownContent = document.getElementById('dailyBreakdownContent');
+            let isEarningsBreakdownExpanded = false;
+
+            const toggleTradingVolumeBreakdownBtn = document.getElementById('toggleTradingVolumeBreakdownBtn');
+            const tradingVolumeBreakdownContent = document.getElementById('tradingVolumeBreakdownContent');
+            let isTradingVolumeBreakdownExpanded = false;
+
+            // --- State Variables ---
+            let dailyEarningsBreakdown = [];
+            let dailyTradingVolumeBreakdown = [];
+
+            // --- Helper Functions ---
+
+            const showMessage = (message, type = 'error') => {
+                messageBox.textContent = message;
+                messageBox.className = `message-box show ${type}`;
+                setTimeout(() => {
+                    messageBox.classList.remove('show');
+                }, 3000);
+            };
+
+            const formatDate = (date) => {
+                const options = { month: 'short', day: 'numeric', year: 'numeric' };
+                return date.toLocaleDateString('en-US', options);
+            };
+
+            const getTodayDateISO = () => {
+                const today = new Date();
+                const year = today.getFullYear();
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const day = String(today.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            };
+
+            const activateCurrencyButton = (symbolToActivate) => {
+                currencyButtons.forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.dataset.currencySymbol === symbolToActivate) {
+                        btn.classList.add('active');
+                        principalSymbol.textContent = btn.textContent;
+                    }
+                });
+            };
+
+            // --- Data Persistence (Remember Data) Logic ---
+            const STORAGE_KEY = 'dailyCompoundCalcData';
+
+            const saveFormData = () => {
+                console.log('saveFormData: Triggered. Checkbox state:', rememberDataCheckbox.checked);
+                if (!rememberDataCheckbox.checked) {
+                    localStorage.removeItem(STORAGE_KEY);
+                    console.log('saveFormData: Local storage cleared as checkbox is unchecked.');
+                    return;
+                }
+
+                const activeCurrencyButton = document.querySelector('.currency-button.active');
+                const selectedCurrencySymbol = activeCurrencyButton ? activeCurrencyButton.dataset.currencySymbol : 'USDT';
+
+                const data = {
+                    principal: principalInput.value,
+                    interestRate: interestRateSelect.value, // Read value from select
+                    days: daysInput.value,
+                    selectedCurrencySymbol: selectedCurrencySymbol,
+                    startDate: startDateInput.value,
+                    rememberDataChecked: rememberDataCheckbox.checked,
+                    isEarningsBreakdownExpanded: isEarningsBreakdownExpanded,
+                    isTradingVolumeBreakdownExpanded: isTradingVolumeBreakdownExpanded
+                };
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                    console.log('saveFormData: Data successfully saved:', data);
+                } catch (e) {
+                    console.error('saveFormData: Error saving to localStorage:', e);
+                    showMessage('Error saving preferences. Local storage might be full or blocked.', 'error');
+                }
+            };
+
+            const loadFormData = () => {
+                console.log('loadFormData: Starting...');
+                // Step 1: Always apply hardcoded default values first
+                applyDefaultFormValues(); 
+
+                // Step 2: Attempt to load from localStorage
+                const storedData = localStorage.getItem(STORAGE_KEY);
+                if (storedData) {
+                    console.log('loadFormData: Stored data found in localStorage.');
+                    const data = JSON.parse(storedData);
+
+                    // Step 3: Set the rememberDataCheckbox state based on stored preference
+                    rememberDataCheckbox.checked = data.rememberDataChecked !== false; 
+
+                    // Step 4: If rememberDataCheckbox is checked (after setting its state), override defaults with stored values
+                    if (rememberDataCheckbox.checked) {
+                        console.log('loadFormData: Remember data checkbox is checked. Overriding defaults with stored data.');
+                        principalInput.value = data.principal || principalInput.value;
+                        interestRateSelect.value = data.interestRate || interestRateSelect.value; // Load value into select
+                        daysInput.value = data.days || daysInput.value;
+                        startDateInput.value = data.startDate || getTodayDateISO();
+
+                        activateCurrencyButton(data.selectedCurrencySymbol || 'USDT');
+
+                        isEarningsBreakdownExpanded = data.isEarningsBreakdownExpanded !== undefined ? data.isEarningsBreakdownExpanded : false;
+                        earningsBreakdownContent.classList.toggle('expanded', isEarningsBreakdownExpanded);
+                        toggleEarningsBreakdownBtn.classList.toggle('expanded', isEarningsBreakdownExpanded);
+
+                        isTradingVolumeBreakdownExpanded = data.isTradingVolumeBreakdownExpanded !== undefined ? data.isTradingVolumeBreakdownExpanded : false;
+                        tradingVolumeBreakdownContent.classList.toggle('expanded', isTradingVolumeBreakdownExpanded);
+                        toggleTradingVolumeBreakdownBtn.classList.toggle('expanded', isTradingVolumeBreakdownExpanded);
+                        console.log('loadFormData: Form fields updated with stored data.');
+                    } else {
+                        console.log('loadFormData: Remember data checkbox was unchecked in stored data. Defaults remain (already applied).');
+                    }
+                } else {
+                    // If no stored data, defaults are already applied by applyDefaultFormValues()
+                    // Ensure rememberDataCheckbox is UNCHECKED by default for the first-time user
+                    console.log('loadFormData: No stored data found. Defaults applied. Setting remember checkbox to UNCHECKED.');
+                    rememberDataCheckbox.checked = false;
+                }
+                console.log('loadFormData: Finished. Final form state after load:', {
+                    principal: principalInput.value,
+                    interestRate: interestRateSelect.value,
+                    days: daysInput.value,
+                    currency: principalSymbol.textContent,
+                    startDate: startDateInput.value,
+                    rememberChecked: rememberDataCheckbox.checked
+                });
+            };
+
+            const applyDefaultFormValues = () => {
+                console.log('applyDefaultFormValues: Setting hardcoded default values to form elements.');
+                principalInput.value = 1000;
+                interestRateSelect.value = 1.3; // Set default for select
+                daysInput.value = 30;
+                startDateInput.value = getTodayDateISO();
+
+                activateCurrencyButton('USDT'); // Set USDT as default currency
+
+                isEarningsBreakdownExpanded = false;
+                earningsBreakdownContent.classList.remove('expanded');
+                toggleEarningsBreakdownBtn.classList.remove('expanded');
+
+                isTradingVolumeBreakdownExpanded = false;
+                tradingVolumeBreakdownContent.classList.remove('expanded');
+                toggleTradingVolumeBreakdownBtn.classList.remove('expanded');
+                console.log('applyDefaultFormValues: Hardcoded defaults applied to form.');
+            };
+
+            // --- Initial Setup on DOMContentLoaded ---
+            console.log('DOMContentLoaded: Script execution started.');
+            loadFormData(); // Call loadFormData to handle defaults and stored data
+
+            // After loading, save the current state if the checkbox is checked.
+            // This ensures that the initial state (either defaults or loaded data) is persisted
+            // if 'remember data' is active.
+            if (rememberDataCheckbox.checked) {
+                saveFormData(); 
+            }
+            calculateBtn.click(); // Perform initial calculation based on the final loaded/default values
+            console.log('DOMContentLoaded: Initial calculation triggered.');
+
+
+            // --- Event Listeners ---
+            const inputsToPersist = document.querySelectorAll('[data-persist="true"]');
+            inputsToPersist.forEach(input => {
+                input.addEventListener('input', saveFormData);
+                input.addEventListener('change', saveFormData); // For date inputs, select, etc.
+            });
+
+            currencyButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    activateCurrencyButton(button.dataset.currencySymbol);
+                    saveFormData();
+                });
+            });
+
+            rememberDataCheckbox.addEventListener('change', () => {
+                console.log('Remember data checkbox changed. New state:', rememberDataCheckbox.checked);
+                saveFormData(); // Save immediately when checkbox state changes
+            });
+
+            toggleEarningsBreakdownBtn.addEventListener('click', () => {
+                isEarningsBreakdownExpanded = !isEarningsBreakdownExpanded;
+                earningsBreakdownContent.classList.toggle('expanded', isEarningsBreakdownExpanded);
+                toggleEarningsBreakdownBtn.classList.toggle('expanded', isEarningsBreakdownExpanded);
+                saveFormData();
+            });
+
+            toggleTradingVolumeBreakdownBtn.addEventListener('click', () => {
+                isTradingVolumeBreakdownExpanded = !isTradingVolumeBreakdownExpanded;
+                tradingVolumeBreakdownContent.classList.toggle('expanded', isTradingVolumeBreakdownExpanded);
+                toggleTradingVolumeBreakdownBtn.classList.toggle('expanded', isTradingVolumeBreakdownExpanded);
+                saveFormData();
+            });
+
+            // Add event listener for 'Enter' key press on the document
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault(); // Prevent default form submission if any
+                    calculateBtn.click(); // Trigger the calculate button click
+                }
+            });
+
+
+            // --- Calculation Functions ---
+
+            const calculateTotalDays = (days) => {
+                return Math.max(0, Math.round(days));
+            };
+
+            const performCompoundInterestCalculation = (principal, interestRateDecimal, totalDays, symbol) => {
+                const reinvestRate = 1.0; 
+                const dailyEffectiveRateDecimal = interestRateDecimal; 
+
+                let currentAmount = principal;
+                let totalInterestEarned = 0;
+                dailyEarningsBreakdown = [];
+
+                const startDateString = startDateInput.value;
+                const startDateObj = new Date(startDateString + 'T00:00:00');
+
+                for (let i = 0; i < totalDays; i++) {
+                    const interestForDay = currentAmount * dailyEffectiveRateDecimal;
+                    const reinvestedAmount = interestForDay * reinvestRate;
+                    currentAmount += reinvestedAmount;
+                    totalInterestEarned += interestForDay;
+
+                    let currentDateInLoop = new Date(startDateObj);
+                    currentDateInLoop.setDate(startDateObj.getDate() + i);
+
+                    dailyEarningsBreakdown.push({
+                        day: i + 1,
+                        date: formatDateForBreakdown(currentDateInLoop),
+                        earnings: interestForDay,
+                        totalEarnings: totalInterestEarned,
+                        balance: currentAmount
+                    });
+                }
+
+                const percentageProfit = (principal > 0) ? (totalInterestEarned / principal) * 100 : 0;
+                let endDateObj = new Date(startDateObj);
+                endDateObj.setDate(startDateObj.getDate() + totalDays);
+
+
+                projectionHeading.textContent = `Projection for ${totalDays} days`;
+                investmentValueSpan.textContent = `${symbol} ${currentAmount.toFixed(2)}`;
+                totalEarningsSpan.textContent = `${symbol} ${totalInterestEarned.toFixed(2)}`;
+                percentageProfitSpan.textContent = `${percentageProfit.toFixed(1)}%`;
+                totalDaysResultSpan.textContent = `${totalDays}`;
+                dailyEffectiveRateSpan.textContent = `${(dailyEffectiveRateDecimal * 100).toFixed(2)}%`;
+                endDateSpan.textContent = formatDate(endDateObj);
+                initialBalanceDateSpan.textContent = formatDate(startDateObj);
+                initialBalanceSpan.textContent = `${symbol} ${principal.toFixed(2)}`;
+
+                renderDailyBreakdown(dailyEarningsBreakdown, symbol);
+            };
+
+            const performTradingVolumeCalculation = (Principal_amount, Duration_in_Days, Interest_rate, symbol) => {
+                const fixedTradingRatePerBaseDeal = 0.01;
+                let Trading_signal_count = 0;
+                
+                // Calculate Trading_signal_count based on the selected Interest_rate
+                // Round to nearest whole number as signals are discrete
+                Trading_signal_count = Math.max(0, Math.round(Interest_rate / 0.65));
+
+                dailyTradingVolumeBreakdown = [];
+                let accumulatedTradingVolume = 0;
+                let currentCapitalForTV = Principal_amount;
+                const fixedCompoundRateForTV = 0.013;
+
+                const startDateString = startDateInput.value;
+                const startDateObj = new Date(startDateString + 'T00:00:00');
+
+                for (let i = 0; i < Duration_in_Days; i++) {
+                    const tradingValuePerTrade = fixedTradingRatePerBaseDeal * currentCapitalForTV;
+                    const tradingValuePerDay = tradingValuePerTrade * Trading_signal_count;
+                    accumulatedTradingVolume += tradingValuePerDay;
+
+                    currentCapitalForTV *= (1 + fixedCompoundRateForTV);
+
+                    let currentDateInLoop = new Date(startDateObj);
+                    currentDateInLoop.setDate(startDateObj.getDate() + i);
+
+                    dailyTradingVolumeBreakdown.push({
+                        day: i + 1,
+                        date: formatDateForBreakdown(currentDateInLoop),
+                        tradingValuePerTrade: tradingValuePerTrade,
+                        tradingValuePerDay: tradingValuePerDay,
+                        totalTradingVolume: accumulatedTradingVolume
+                    });
+                }
+
+                totalTradingVolumeSpan.textContent = `${symbol} ${accumulatedTradingVolume.toFixed(2)}`;
+
+                tradingVolumeNoteSpan.innerHTML = `*Your capital is ${symbol} ${Principal_amount.toFixed(2)}<br>` +
+                                                   `*Capital grows by ${Interest_rate}% daily.<br>` +
+                                                   `*You have ${Trading_signal_count} trading signals.<br>` +
+                                                   `*Trading volume is: (1% * Current capital) * Trading signals * Duration in days.`;
+                
+                renderTradingVolumeBreakdown(dailyTradingVolumeBreakdown, symbol);
+            };
+
+            const formatDateForBreakdown = (date) => {
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = date.toLocaleString('en-US', { month: 'short' });
+                const year = String(date.getFullYear()).slice(-2);
+                return `${day} ${month} '${year}`;
+            };
+
+            // --- Render Daily Earnings Breakdown (as a Table) ---
+            const renderDailyBreakdown = (breakdownData, symbol) => {
+                earningsBreakdownContent.innerHTML = '';
+
+                if (breakdownData.length === 0) {
+                    earningsBreakdownContent.innerHTML = '<p class="no-data">No data to display. Calculate first.</p>';
+                    return;
+                }
+
+                const table = document.createElement('table');
+                table.classList.add('breakdown-table', 'earnings-breakdown');
+
+                const thead = table.createTHead();
+                const headerRow = thead.insertRow();
+                
+                const headers = [
+                    { text: 'Date / Day', class: 'header-date-day', dataLabel: 'Date / Day' },
+                    { text: 'Earnings', class: 'header-earnings', dataLabel: 'Earnings' },
+                    { text: 'Total Earnings', class: 'header-total-earnings', dataLabel: 'Total Earnings' },
+                    { text: 'Balance', class: 'header-balance', dataLabel: 'Balance' }
+                ];
+
+                headers.forEach(headerInfo => {
+                    const th = document.createElement('th');
+                    th.textContent = headerInfo.text;
+                    th.classList.add(headerInfo.class);
+                    headerRow.appendChild(th);
+                });
+                
+                const tbody = table.createTBody();
+                breakdownData.forEach(item => {
+                    const row = tbody.insertRow();
+                    
+                    const cell1 = row.insertCell();
+                    cell1.innerHTML = `<span class="day-number">${item.date}</span><br><span class="day-label">Day ${item.day}</span>`;
+                    cell1.classList.add('col-date-day');
+                    cell1.setAttribute('data-label', 'Date / Day'); 
+
+                    const cell2 = row.insertCell();
+                    cell2.textContent = `${symbol} ${item.earnings.toFixed(2)}`;
+                    cell2.classList.add('col-earnings');
+                    cell2.setAttribute('data-label', 'Earnings');
+
+                    const cell3 = row.insertCell();
+                    cell3.textContent = `${symbol} ${item.totalEarnings.toFixed(2)}`;
+                    cell3.classList.add('col-total-earnings');
+                    cell3.setAttribute('data-label', 'Total Earnings');
+
+                    const cell4 = row.insertCell();
+                    cell4.textContent = `${symbol} ${item.balance.toFixed(2)}`;
+                    cell4.classList.add('col-balance');
+                    cell4.setAttribute('data-label', 'Balance');
+                });
+
+                earningsBreakdownContent.appendChild(table);
+            };
+
+
+            // --- Render Daily Trading Volume Breakdown (as a Table) ---
+            const renderTradingVolumeBreakdown = (breakdownData, symbol) => {
+                tradingVolumeBreakdownContent.innerHTML = '';
+
+                if (breakdownData.length === 0) {
+                    tradingVolumeBreakdownContent.innerHTML = '<p class="no-data">No data to display. Calculate first.</p>';
+                    return;
+                }
+
+                const table = document.createElement('table');
+                table.classList.add('breakdown-table', 'trading-volume-breakdown');
+
+                const thead = table.createTHead();
+                const headerRow = thead.insertRow();
+                
+                const headers = [
+                    { text: 'Date / Day', class: 'header-date-day', dataLabel: 'Date / Day' },
+                    { text: 'Value per Trade', class: 'header-per-trade', dataLabel: 'Value per Trade' },
+                    { text: 'Value per Day', class: 'header-per-day', dataLabel: 'Value per Day' },
+                    { text: 'Total Trading Volume', class: 'header-total-volume', dataLabel: 'Total Trading Volume' }
+                ];
+
+                headers.forEach(headerInfo => {
+                    const th = document.createElement('th');
+                    th.textContent = headerInfo.text;
+                    th.classList.add(headerInfo.class);
+                    headerRow.appendChild(th);
+                });
+                
+                const tbody = table.createTBody();
+                breakdownData.forEach(item => {
+                    const row = tbody.insertRow();
+                    
+                    const cell1 = row.insertCell();
+                    cell1.innerHTML = `<span class="day-number">${item.date}</span><br><span class="day-label">Day ${item.day}</span>`;
+                    cell1.classList.add('col-date-day');
+                    cell1.setAttribute('data-label', 'Date / Day'); 
+
+                    const cell2 = row.insertCell();
+                    cell2.textContent = `${symbol} ${item.tradingValuePerTrade.toFixed(2)}`;
+                    cell2.classList.add('col-per-trade');
+                    cell2.setAttribute('data-label', 'Value per Trade');
+
+                    const cell3 = row.insertCell();
+                    cell3.textContent = `${symbol} ${item.tradingValuePerDay.toFixed(2)}`;
+                    cell3.classList.add('col-per-day');
+                    cell3.setAttribute('data-label', 'Value per Day');
+
+                    const cell4 = row.insertCell();
+                    cell4.textContent = `${symbol} ${item.totalTradingVolume.toFixed(2)}`;
+                    cell4.classList.add('col-total-volume');
+                    cell4.setAttribute('data-label', 'Total Trading Volume');
+                });
+
+                tradingVolumeBreakdownContent.appendChild(table);
+            };
+
+
+            calculateBtn.addEventListener('click', () => {
+                const principal = parseFloat(principalInput.value);
+                let interestRateDecimal = parseFloat(interestRateSelect.value) / 100; // Read from select
+                const interestRateInputValue = parseFloat(interestRateSelect.value); // Raw value for trading volume message/logic
+                const days = parseInt(daysInput.value) || 0;
+                const symbol = principalSymbol.textContent;
+
+                if (isNaN(principal) || principal <= 0) {
+                    showMessage("Please enter a valid principal amount (must be a positive number).");
+                    return;
+                }
+                if (isNaN(interestRateDecimal) || interestRateDecimal < 0) {
+                    showMessage("Please select a valid interest rate (must be 0 or positive).");
+                    return;
+                }
+                if (days === 0 || isNaN(days)) {
+                    showMessage("Please enter a valid duration in days.");
+                    return;
+                }
+
+                const totalDays = calculateTotalDays(days);
+
+                performCompoundInterestCalculation(principal, interestRateDecimal, totalDays, symbol);
+                performTradingVolumeCalculation(principal, totalDays, interestRateInputValue, symbol);
+            });
+        });
+    </script>
+</body>
+</html>
