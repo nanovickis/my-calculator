@@ -619,19 +619,19 @@
                 overflow: hidden;
             }
             .breakdown-table td {
+                /* Adjusted padding-left and width for data-label to prevent overlap */
                 border-bottom: 1px dotted #4a4a4a;
-                padding: 8px 15px;
+                padding: 8px 15px 8px 55%; /* Increased left padding */
                 position: relative;
-                padding-left: 50%; /* Space for pseudo-element label */
             }
             .breakdown-table td:last-child {
                 border-bottom: none;
             }
             .breakdown-table td::before {
-                content: attr(data-label); /* Use data-label for pseudo-element */
+                content: attr(data-label);
                 position: absolute;
                 left: 10px;
-                width: 45%;
+                width: 45%; /* Adjusted width for data-label */
                 padding-right: 10px;
                 white-space: nowrap;
                 font-weight: bold;
