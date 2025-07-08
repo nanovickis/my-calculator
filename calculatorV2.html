@@ -155,7 +155,7 @@
         }
 
         .rate-input-group {
-            display: flex;
+            display: flex; /* Use flexbox */
             align-items: center;
             gap: 10px;
             background-color: #4a4a4a; /* Consistent background for the whole group */
@@ -164,14 +164,16 @@
             padding: 0 12px; /* Padding for the content inside */
         }
 
-        .rate-input-group input {
-            border: none; /* Remove individual input border */
-            background-color: transparent; /* Transparent background for input */
+        .rate-input-group input,
+        .rate-input-group select { /* Apply to both input and select inside this group */
+            border: none; /* Remove individual border */
+            background-color: transparent; /* Transparent background */
             flex-grow: 1;
-            width: auto;
-            padding: 10px 0; /* Adjust padding for input inside the group */
+            width: auto; /* Let flex control width */
+            padding: 10px 0; /* Adjust padding for content inside the group */
         }
-        .rate-input-group input:focus {
+        .rate-input-group input:focus,
+        .rate-input-group select:focus {
             outline: none; /* Remove outline as group has border */
             border: none;
         }
@@ -181,6 +183,7 @@
             color: #f0f0f0;
             font-weight: bold;
             flex-shrink: 0; /* Prevent from shrinking */
+            white-space: nowrap; /* Keep % and daily together */
         }
 
         .rate-input-group .rate-period-label { /* New style for the fixed "daily" label */
@@ -193,10 +196,8 @@
         /* Duration specific styling for the new layout */
         .duration-group .rate-input-group {
             /* Inherits most styles from .rate-input-group */
-            /* No specific changes needed here beyond what .rate-input-group provides */
         }
         .duration-group .rate-input-group .rate-period-label {
-            /* This will style the "Days" label */
             margin-left: 5px; /* Space between input and Days label */
         }
 
@@ -577,7 +578,8 @@
             .rate-input-group {
                 flex-wrap: wrap;
             }
-            .rate-input-group input {
+            .rate-input-group input,
+            .rate-input-group select { /* Apply to both input and select inside this group */
                 flex-grow: 1;
                 width: auto;
             }
