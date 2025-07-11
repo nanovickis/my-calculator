@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Compound Calculator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #2c2c2c; /* Dark background */
+            color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top for longer content */
+            min-height: 100vh;
+            margin: 0; /* Reduced margin for mobile */
+            box-sizing: border-box; /* Include padding/border in element's total width and height */
+        }
+
+        /* --- NEW MAIN LAYOUT CONTAINER --- */
+        .main-layout-container {
+            display: flex;
+            flex-wrap: wrap; /* Allows wrapping on smaller screens */
+            gap: 20px; /* Space between left and right columns */
+            width: 100%;
+            max-width: 1200px; /* Max width for the entire layout */
+            margin: 0 auto; /* Center the whole layout */
+        }
+
+        .calculator-left-side {
+            flex: 0 0 500px; /* Fixed width for the calculator side */
+            max-width: 100%; /* Ensures it doesn't overflow on small screens */
+            box-sizing: border-box;
+        }
+
+        .results-right-side {
+            flex: 1; /* Takes up remaining space */
+            min-width: 300px; /* Minimum width for results to prevent squishing */
+            background-color: #3b3b3b; /* Consistent background with calculator */
+            border-radius: 10px; /* Consistent border radius */
+            padding: 20px; /* Consistent padding */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); /* Consistent shadow */
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column; /* Stack result sections vertically */
+            gap: 15px; /* Gap between result sections */
+        }
+
+        /* Adjust calculator-container to not have padding/shadow as parent handles it now */
+        .calculator-container {
+            background-color: #3b3b3b;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            width: 100%; /* Fill parent width */
+            box-sizing: border-box;
+        }
+
+        /* Existing styles below, with minor adjustments */
+
+        .input-section {
+            margin-bottom: 15px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.9em;
+            color: #ccc;
+        }
+
+        input[type="number"],
+        input[type="date"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #555;
+            border-radius: 6px;
+            background-color: #4a4a4a;
+            color: #f0f0f0;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+
+        input[type="number"]:focus,
+        input[type="date"]:focus,
+        select:focus {
+            border-color: #ff9900;
+            outline: none;
+        }
+
+        .input-with-symbol {
+            display: flex;
+            align-items: center;
+            background-color: #4a4a4a;
+            border: 1px solid #555;
+            border-radius: 6px;
+            padding-left: 10px;
+        }
+
+        .input-with-symbol span {
+            color: #ccc;
+            font-size: 1em;
+            margin-right: 8px;
+        }
+
+        .input-with-symbol input {
+            border: none;
+            background-color: transparent;
+            flex-grow: 1;
+            padding-left: 0;
+        }
+
+        .currency-selector {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .currency-button {
+            padding: 8px 12px;
+            border: 1px solid #555;
+            border-radius: 6px;
+            background-color: #4a4a4a;
+            color: #ccc;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+
+        .currency-button.active {
+            background-color: #ff9900;
+            border-color: #ff9900;
+            color: #fff;
+        }
+
+        .rate-input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background-color: #4a4a4a;
+            border: 1px solid #555;
+            border-radius: 6px;
+            padding: 0 10px;
+        }
+
+        .rate-input-group input,
+        .rate-input-group select {
+            border: none;
+            background-color: transparent;
+            flex-grow: 1;
+            width: auto;
+            padding: 10px 0;
+        }
+        .rate-input-group input:focus,
+        .rate-input-group select:focus {
+            outline: none;
+            border: none;
+        }
+
+        .rate-input-group .percentage {
+            color: #f0f0f0;
+            font-weight: bold;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        .rate-input-group .rate-period-label {
+            color: #ccc;
+            font-size: 0.9em;
+            white-space: nowrap;
+            margin-left: 5px;
+        }
+
+        .static-reinvest-rate {
+            color: #f0f0f0;
+            font-weight: bold;
+            padding: 10px 0;
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+            white-space: nowrap;
+        }
+        .static-reinvest-rate .rate-period-label {
+            color: #ccc;
+            font-size: 0.9em;
+            margin-left: 5px;
+        }
+
+        .calculate-button {
+            width: 100%;
+            padding: 14px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            margin-top: 15px;
+        }
+
+        .calculate-button:hover {
+            background-color: #45a049;
+        }
+
+        .remember-data-group {
+            display: flex;
+            align-items: center;
+            margin-top: 15px;
+            margin-bottom: 20px;
+        }
+
+        .remember-data-group input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+            transform: scale(1.2);
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            border: 2px solid #ff9900;
+            border-radius: 4px;
+            height: 18px;
+            width: 18px;
+            background-color: #4a4a4a;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .remember-data-group input[type="checkbox"]:checked {
+            background-color: #ff9900;
+            border-color: #ff9900;
+        }
+
+        .remember-data-group input[type="checkbox"]:checked::after {
+            content: '✔';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #3b3b3b;
+            font-size: 14px;
+            line-height: 1;
+        }
+
+        .remember-data-group label {
+            margin-bottom: 0;
+            font-size: 1em;
+            cursor: pointer;
+        }
+
+        .message-box {
+            background-color: #dc3545;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .message-box.show {
+            opacity: 1;
+        }
+
+        .results-section.new-layout {
+            background-color: transparent;
+            padding: 0;
+            margin-top: 0;
+            border-radius: 0;
+            box-shadow: none;
+            color: #f0f0f0;
+        }
+
+        .results-section.new-layout h2 {
+            color: #ff9900;
+            font-size: 1.6em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .results-divider {
+            border: none;
+            border-top: 1px solid #555;
+            margin: 10px 0 20px 0;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px 20px;
+            align-items: baseline;
+        }
+
+        .grid-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .grid-item .result-label {
+            font-size: 0.85em;
+            color: #aaa;
+            margin-bottom: 4px;
+        }
+
+        .grid-item .result-value {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #f0f0f0;
+            margin-top: 0;
+        }
+
+        .result-value.green { color: #4CAF50; }
+        .result-value.orange { color: #ff9900; }
+        .result-value.blue { color: #2196F3; }
+
+        .right-align { text-align: right; }
+
+        .initial-balance {
+            margin-top: 20px;
+            text-align: right;
+        }
+
+        .initial-balance .result-label {
+            font-size: 0.85em;
+            color: #aaa;
+            margin-bottom: 4px;
+        }
+
+        .expandable-section {
+            margin-top: 0;
+            background-color: #2b2b2b;
+            border-radius: 8px;
+            overflow: hidden;
+            padding: 10px 15px;
+        }
+
+        .toggle-breakdown-btn {
+            width: 100%;
+            background-color: transparent;
+            color: #ff9900;
+            border: none;
+            padding: 8px 0;
+            font-size: 1em;
+            font-weight: bold;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: color 0.2s ease;
+        }
+
+        .toggle-breakdown-btn:hover { color: #ffa52a; }
+
+        .toggle-breakdown-btn i { transition: transform 0.3s ease; }
+
+        .toggle-breakdown-btn.expanded i { transform: rotate(180deg); }
+
+        .breakdown-content {
+            max-height: 0;
+            overflow-y: auto;
+            transition: max-height 0.5s ease-out, padding 0.5s ease-out;
+            padding-top: 0;
+            padding-bottom: 0;
+            color: #f0f0f0;
+            font-size: 0.9em;
+        }
+
+        .breakdown-content.expanded {
+            max-height: 400px;
+            padding-top: 10px;
+            padding-bottom: 5px;
+        }
+
+        .breakdown-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+        }
+
+        .breakdown-table th,
+        .breakdown-table td {
+            padding: 6px 8px;
+            text-align: right;
+            border-bottom: 1px solid #4a4a4a;
+        }
+
+        .breakdown-table thead th {
+            background-color: #222;
+            color: #fff;
+            font-weight: normal;
+            font-size: 0.85em;
+            border-bottom: 2px solid #555;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .breakdown-table.earnings-breakdown th.header-date-day { background-color: #007bff; text-align: left; }
+        .breakdown-table.earnings-breakdown th.header-earnings { background-color: #6c757d; }
+        .breakdown-table.earnings-breakdown th.header-total-earnings { background-color: #ff9900; }
+        .breakdown-table.earnings-breakdown th.header-balance { background-color: #28a745; }
+
+        .breakdown-table.trading-volume-breakdown th.header-date-day { background-color: #007bff; text-align: left; }
+        .breakdown-table.trading-volume-breakdown th.header-per-trade { background-color: #6c757d; }
+        .breakdown-table.trading-volume-breakdown th.header-per-day { background-color: #ff9900; }
+        .breakdown-table.trading-volume-breakdown th.header-total-volume { background-color: #28a745; }
+
+        .breakdown-table tbody tr:last-child td { border-bottom: none; }
+        .breakdown-table tbody tr:nth-child(even) { background-color: #303030; }
+
+        .breakdown-table td.col-date-day { text-align: left; font-weight: bold; }
+        .breakdown-table td.col-earnings,
+        .breakdown-table td.col-per-trade { color: #f0f0f0; }
+        .breakdown-table td.col-total-earnings,
+        .breakdown-table td.col-per-day { color: #ff9900; font-weight: bold; }
+        .breakdown-table td.col-balance,
+        .breakdown-table td.col-total-volume { color: #2196F3; font-weight: bold; }
+
+        .no-data {
+            color: #aaa;
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        .results-section.trading-volume-results {
+            margin-top: 0;
+            background-color: #2b2b2b;
+            border-radius: 8px;
+            padding: 10px 15px;
+        }
+
+        .trading-volume-results h3 {
+            color: #ff9900;
+            margin-top: 0;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        .small-note {
+            font-size: 0.8em;
+            color: #aaa;
+            margin-top: 8px;
+            line-height: 1.3;
+        }
+
+        /* --- MOBILE COMPACT STYLES --- */
+        @media (max-width: 600px) {
+            body {
+                margin: 0; /* Remove body margin on mobile */
+            }
+            .main-layout-container {
+                flex-direction: column;
+                gap: 0; /* Remove gap between containers */
+            }
+            .calculator-container, .results-right-side {
+                padding: 15px; /* Reduce padding inside containers */
+                border-radius: 0; /* Full-width feel */
+                margin: 0;
+                box-shadow: none;
+            }
+            .results-right-side {
+                border-top: 1px solid #444; /* Add a separator */
+                gap: 10px; /* Reduce gap between result sections */
+            }
+            .results-grid {
+                grid-template-columns: 1fr; /* Single column layout */
+                gap: 8px; /* Reduce gap between grid items */
+            }
+            .grid-item.right-align, .initial-balance {
+                text-align: left; /* Align all text to the left */
+            }
+             .initial-balance {
+                margin-top: 15px;
+            }
+            .expandable-section, .results-section.trading-volume-results {
+                 padding: 8px 10px; /* Compact padding */
+            }
+            .toggle-breakdown-btn {
+                padding: 5px 0;
+            }
+
+            /* Stacked table for mobile */
+            .breakdown-table,
+            .breakdown-table tbody,
+            .breakdown-table tr,
+            .breakdown-table td,
+            .breakdown-table th {
+                display: block;
+                width: 100%;
+                text-align: right; /* Align value to the right */
+            }
+            .breakdown-table thead {
+                display: none;
+            }
+            .breakdown-table tr {
+                margin-bottom: 8px;
+                border: 1px solid #4a4a4a;
+                border-radius: 6px;
+                overflow: hidden;
+            }
+            .breakdown-table td {
+                border-bottom: 1px dotted #4a4a4a;
+                padding: 6px 10px 6px 50%; /* Adjust padding for label */
+                position: relative;
+            }
+             .breakdown-table td.col-date-day {
+                text-align: right; /* Override for consistency */
+            }
+            .breakdown-table td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 10px;
+                width: 45%;
+                padding-right: 10px;
+                white-space: nowrap;
+                font-weight: bold;
+                color: #bbb;
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-layout-container">
+        <div class="calculator-left-side">
+            <div class="calculator-container">
+                <div class="input-section">
+                    <div class="input-group">
+                        <label for="currency">Currency:</label>
+                        <div class="currency-selector" id="currencySelector">
+                            <button class="currency-button" data-currency-symbol="$">USD</button>
+                            <button class="currency-button" data-currency-symbol="€">EUR</button>
+                            <button class="currency-button" data-currency-symbol="USDT">USDT</button>
+                            <button class="currency-button" data-currency-symbol="USDC">USDC</button>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="principal">Principal amount:</label>
+                        <div class="input-with-symbol">
+                            <span id="principalSymbol">USDT</span>
+                            <input type="number" id="principal" value="1000" min="0" data-persist="true" autocomplete="off">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="interestRate">Interest rate:</label>
+                        <div class="rate-input-group">
+                            <select id="interestRate" data-persist="true">
+                                <option value="1.3" selected>1.3%</option>
+                                <option value="1.95">1.95%</option>
+                                <option value="2.6">2.6%</option>
+                                <option value="3.25">3.25%</option>
+                                <option value="3.9">3.9%</option>
+                            </select>
+                            <span class="percentage"> <span class="rate-period-label">daily</span></span>
+                        </div>
+                    </div>
+
+                    <div class="input-group duration-group">
+                        <label for="days">Duration:</label>
+                        <div class="rate-input-group">
+                            <input type="number" id="days" value="30" min="0" data-persist="true" autocomplete="off">
+                            <span class="rate-period-label">Days</span>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Daily reinvest rate</label>
+                        <div class="rate-input-group">
+                            <span class="static-reinvest-rate">100%</span>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Start date?</label>
+                        <input type="date" id="startDate" data-persist="true" autocomplete="off">
+                    </div>
+                    
+                    <div class="input-group remember-data-group">
+                        <input type="checkbox" id="rememberDataCheckbox" data-persist="true">
+                        <label for="rememberDataCheckbox">Remember data for next time</label>
+                    </div>
+
+                    <div id="messageBox" class="message-box"></div>
+
+                    <button class="calculate-button" id="calculateBtn">Calculate</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="results-right-side">
+            <div class="results-section new-layout">
+                <h2 id="projectionHeading">Projection for 0 days</h2>
+                <hr class="results-divider">
+
+                <div class="results-grid">
+                    <div class="grid-item">
+                        <p class="result-label">Investment value</p>
+                        <p class="result-value green" id="investmentValue">USDT 0.00</p>
+                    </div>
+                    <div class="grid-item right-align">
+                        <p class="result-label">Total days</p>
+                        <p class="result-value default-color" id="totalDaysResult">0</p>
+                    </div>
+
+                    <div class="grid-item">
+                        <p class="result-label">Total interest / earnings</p>
+                        <p class="result-value orange" id="totalEarnings">USDT 0.00</p>
+                    </div>
+                    <div class="grid-item right-align">
+                        <p class="result-label">Daily interest rate</p>
+                        <p class="result-value default-color" id="dailyEffectiveRate">0.0%</p>
+                    </div>
+
+                    <div class="grid-item">
+                        <p class="result-label">Percentage profit</p>
+                        <p class="result-value orange" id="percentageProfit">0.0%</p>
+                    </div>
+                    <div class="grid-item right-align">
+                        <p class="result-label">End date</p>
+                        <p class="result-value default-color" id="endDate">Jul 12, 2025</p>
+                    </div>
+                </div>
+                <div class="initial-balance">
+                    <p class="result-label">Initial balance on <span id="initialBalanceDate">Jul 12, 2025</span></p>
+                    <p class="result-value blue" id="initialBalance">USDT 0.00</p>
+                </div>
+            </div>
+
+            <div class="results-section trading-volume-results">
+                <h3>Trading Volume Results:</h3>
+                <p id="totalTradingVolumeLine">Total Trading Volume: <span id="totalTradingVolume">USDT 0.00</span></p>
+                <p class="small-note" id="tradingVolumeNote"></p>
+            </div>
+            
+            <div class="expandable-section">
+                <button class="toggle-breakdown-btn" id="toggleTradingVolumeBreakdownBtn">
+                    Trading Volume Breakdown Daily <i class="fas fa-caret-down"></i>
+                </button>
+                <div class="breakdown-content" id="tradingVolumeBreakdownContent">
+                    <p class="no-data">No data to display. Calculate first.</p>
+                </div>
+            </div>
+
+            <div class="expandable-section">
+                <button class="toggle-breakdown-btn" id="toggleEarningsBreakdownBtn">
+                    Earnings Breakdown Daily <i class="fas fa-caret-down"></i>
+                </button>
+                <div class="breakdown-content" id="dailyBreakdownContent">
+                    <p class="no-data">No data to display. Calculate first.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const principalInput = document.getElementById('principal');
+            const interestRateSelect = document.getElementById('interestRate');
+            const daysInput = document.getElementById('days');
+            const calculateBtn = document.getElementById('calculateBtn');
+            const rememberDataCheckbox = document.getElementById('rememberDataCheckbox');
+            const startDateInput = document.getElementById('startDate');
+            const currencyButtons = document.querySelectorAll('.currency-button');
+            const principalSymbol = document.getElementById('principalSymbol');
+            const projectionHeading = document.getElementById('projectionHeading');
+            const investmentValueSpan = document.getElementById('investmentValue');
+            const totalEarningsSpan = document.getElementById('totalEarnings');
+            const percentageProfitSpan = document.getElementById('percentageProfit');
+            const totalDaysResultSpan = document.getElementById('totalDaysResult');
+            const dailyEffectiveRateSpan = document.getElementById('dailyEffectiveRate');
+            const endDateSpan = document.getElementById('endDate');
+            const initialBalanceDateSpan = document.getElementById('initialBalanceDate');
+            const initialBalanceSpan = document.getElementById('initialBalance');
+            const totalTradingVolumeSpan = document.getElementById('totalTradingVolume');
+            const totalTradingVolumeLine = document.getElementById('totalTradingVolumeLine');
+            const tradingVolumeNoteSpan = document.getElementById('tradingVolumeNote');
+            const messageBox = document.getElementById('messageBox');
+            const toggleEarningsBreakdownBtn = document.getElementById('toggleEarningsBreakdownBtn');
+            const earningsBreakdownContent = document.getElementById('dailyBreakdownContent');
+            const toggleTradingVolumeBreakdownBtn = document.getElementById('toggleTradingVolumeBreakdownBtn');
+            const tradingVolumeBreakdownContent = document.getElementById('tradingVolumeBreakdownContent');
+
+            let isEarningsBreakdownExpanded = false;
+            let isTradingVolumeBreakdownExpanded = false;
+            let dailyEarningsBreakdown = [];
+            let dailyTradingVolumeBreakdown = [];
+            const STORAGE_KEY = 'dailyCompoundCalcData';
+
+            const showMessage = (message, type = 'error') => {
+                messageBox.textContent = message;
+                messageBox.className = `message-box show ${type}`;
+                setTimeout(() => messageBox.classList.remove('show'), 3000);
+            };
+
+            const formatDate = date => new Date(date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            const getTodayDateISO = () => new Date().toISOString().split('T')[0];
+
+            const activateCurrencyButton = symbol => {
+                currencyButtons.forEach(btn => {
+                    const isActive = btn.dataset.currencySymbol === symbol;
+                    btn.classList.toggle('active', isActive);
+                    if (isActive) principalSymbol.textContent = btn.textContent;
+                });
+            };
+
+            const saveFormData = () => {
+                if (!rememberDataCheckbox.checked) {
+                    localStorage.removeItem(STORAGE_KEY);
+                    return;
+                }
+                const activeCurrencyButton = document.querySelector('.currency-button.active');
+                const data = {
+                    principal: principalInput.value,
+                    interestRate: interestRateSelect.value,
+                    days: daysInput.value,
+                    selectedCurrencySymbol: activeCurrencyButton ? activeCurrencyButton.dataset.currencySymbol : 'USDT',
+                    startDate: startDateInput.value,
+                    rememberDataChecked: rememberDataCheckbox.checked,
+                    isEarningsBreakdownExpanded,
+                    isTradingVolumeBreakdownExpanded
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            };
+
+            const loadFormData = () => {
+                const storedData = localStorage.getItem(STORAGE_KEY);
+                const data = storedData ? JSON.parse(storedData) : {};
+                
+                rememberDataCheckbox.checked = data.rememberDataChecked !== false;
+
+                if (rememberDataCheckbox.checked) {
+                    principalInput.value = data.principal || '2000';
+                    interestRateSelect.value = data.interestRate || '2.6';
+                    daysInput.value = data.days || '5';
+                    startDateInput.value = data.startDate || getTodayDateISO();
+                    activateCurrencyButton(data.selectedCurrencySymbol || 'USDT');
+                    isEarningsBreakdownExpanded = !!data.isEarningsBreakdownExpanded;
+                    isTradingVolumeBreakdownExpanded = !!data.isTradingVolumeBreakdownExpanded;
+                } else {
+                    principalInput.value = '2000';
+                    interestRateSelect.value = '2.6';
+                    daysInput.value = '5';
+                    startDateInput.value = getTodayDateISO();
+                    activateCurrencyButton('USDT');
+                    isEarningsBreakdownExpanded = false;
+                    isTradingVolumeBreakdownExpanded = false;
+                }
+
+                earningsBreakdownContent.classList.toggle('expanded', isEarningsBreakdownExpanded);
+                toggleEarningsBreakdownBtn.classList.toggle('expanded', isEarningsBreakdownExpanded);
+                tradingVolumeBreakdownContent.classList.toggle('expanded', isTradingVolumeBreakdownExpanded);
+                toggleTradingVolumeBreakdownBtn.classList.toggle('expanded', isTradingVolumeBreakdownExpanded);
+
+                calculateAndDisplay();
+            };
+
+            const renderBreakdown = (container, data, headers, rowRenderer, symbol) => {
+                container.innerHTML = '';
+                if (data.length === 0) {
+                    container.innerHTML = '<p class="no-data">No data to display.</p>';
+                    return;
+                }
+                const table = document.createElement('table');
+                table.classList.add('breakdown-table');
+                const thead = table.createTHead();
+                const headerRow = thead.insertRow();
+                headers.forEach(header => {
+                    const th = document.createElement('th');
+                    th.textContent = header.text;
+                    th.classList.add(header.class);
+                    headerRow.appendChild(th);
+                });
+                const tbody = table.createTBody();
+                data.forEach(item => rowRenderer(tbody.insertRow(), item, symbol));
+                container.appendChild(table);
+            };
+
+            const renderEarningsRow = (row, item, symbol) => {
+                row.innerHTML = `
+                    <td data-label="Date / Day" class="col-date-day">${item.date}<br>Day ${item.day}</td>
+                    <td data-label="Earnings" class="col-earnings">${symbol} ${item.earnings.toFixed(2)}</td>
+                    <td data-label="Total Earnings" class="col-total-earnings">${symbol} ${item.totalEarnings.toFixed(2)}</td>
+                    <td data-label="Balance" class="col-balance">${symbol} ${item.balance.toFixed(2)}</td>`;
+            };
+
+            const renderTradingVolumeRow = (row, item, symbol) => {
+                row.innerHTML = `
+                    <td data-label="Date / Day" class="col-date-day">${item.date}<br>Day ${item.day}</td>
+                    <td data-label="Value per Trade" class="col-per-trade">${symbol} ${item.tradingValuePerTrade.toFixed(2)}</td>
+                    <td data-label="Value per Day" class="col-per-day">${symbol} ${item.tradingValuePerDay.toFixed(2)}</td>
+                    <td data-label="Total Volume" class="col-total-volume">${symbol} ${item.totalTradingVolume.toFixed(2)}</td>`;
+            };
+
+            const calculateAndDisplay = () => {
+                const principal = parseFloat(principalInput.value);
+                const interestRate = parseFloat(interestRateSelect.value);
+                const days = parseInt(daysInput.value, 10);
+                const symbol = principalSymbol.textContent;
+
+                if (isNaN(principal) || principal <= 0 || isNaN(interestRate) || interestRate < 0 || isNaN(days) || days <= 0) {
+                    showMessage("Please enter valid positive numbers for all fields.");
+                    return;
+                }
+
+                const interestRateDecimal = interestRate / 100;
+                let currentAmount = principal;
+                let totalInterestEarned = 0;
+                dailyEarningsBreakdown = [];
+
+                let currentCapitalForTV = principal;
+                let accumulatedTradingVolume = 0;
+                const tradingSignalCount = Math.max(0, Math.round(interestRate / 0.65));
+                dailyTradingVolumeBreakdown = [];
+
+                const startDate = new Date(startDateInput.value + 'T00:00:00');
+
+                for (let i = 0; i < days; i++) {
+                    const loopDate = new Date(startDate);
+                    loopDate.setDate(startDate.getDate() + i);
+                    const formattedDate = loopDate.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: '2-digit' }).replace(/, /g, " '");
+                    
+                    const interestForDay = currentAmount * interestRateDecimal;
+                    totalInterestEarned += interestForDay;
+                    currentAmount += interestForDay;
+                    dailyEarningsBreakdown.push({ day: i + 1, date: formattedDate, earnings: interestForDay, totalEarnings: totalInterestEarned, balance: currentAmount });
+
+                    const tradingValuePerTrade = 0.01 * currentCapitalForTV;
+                    const tradingValuePerDay = tradingValuePerTrade * tradingSignalCount;
+                    accumulatedTradingVolume += tradingValuePerDay;
+                    currentCapitalForTV *= (1 + 0.013); // Capital growth for TV calc
+                    dailyTradingVolumeBreakdown.push({ day: i + 1, date: formattedDate, tradingValuePerTrade, tradingValuePerDay, totalTradingVolume: accumulatedTradingVolume });
+                }
+
+                const endDate = new Date(startDate);
+                endDate.setDate(startDate.getDate() + days -1);
+                
+                projectionHeading.textContent = `Projection for ${days} days`;
+                investmentValueSpan.textContent = `${symbol} ${currentAmount.toFixed(2)}`;
+                totalEarningsSpan.textContent = `${symbol} ${totalInterestEarned.toFixed(2)}`;
+                percentageProfitSpan.textContent = `${(totalInterestEarned / principal * 100).toFixed(1)}%`;
+                totalDaysResultSpan.textContent = days;
+                dailyEffectiveRateSpan.textContent = `${interestRate.toFixed(2)}%`;
+                endDateSpan.textContent = formatDate(endDate.toISOString().split('T')[0]);
+                initialBalanceDateSpan.textContent = formatDate(startDateInput.value);
+                initialBalanceSpan.textContent = `${symbol} ${principal.toFixed(2)}`;
+                
+                totalTradingVolumeLine.innerHTML = `Total Trading Volume: <span id="totalTradingVolume">${symbol} ${accumulatedTradingVolume.toFixed(2)}</span>`;
+                tradingVolumeNoteSpan.innerHTML = `Based on your capital of ${symbol} ${principal.toFixed(2)}, growing daily at ${interestRate}%, you receive ${tradingSignalCount} trading signals. The trading volume is calculated as (1% of current capital) × signals × days.`;
+
+                renderBreakdown(earningsBreakdownContent, dailyEarningsBreakdown, [
+                    { text: 'Date/Day', class: 'header-date-day' }, { text: 'Earnings', class: 'header-earnings' },
+                    { text: 'Total', class: 'header-total-earnings' }, { text: 'Balance', class: 'header-balance' }
+                ], renderEarningsRow, symbol);
+                
+                renderBreakdown(tradingVolumeBreakdownContent, dailyTradingVolumeBreakdown, [
+                    { text: 'Date/Day', class: 'header-date-day' }, { text: 'Per Trade', class: 'header-per-trade' },
+                    { text: 'Per Day', class: 'header-per-day' }, { text: 'Total Volume', class: 'header-total-volume' }
+                ], renderTradingVolumeRow, symbol);
+                
+                saveFormData();
+            };
+
+            document.querySelectorAll('[data-persist="true"], .currency-button').forEach(el => {
+                el.addEventListener('change', calculateAndDisplay);
+                el.addEventListener('input', calculateAndDisplay);
+                el.addEventListener('click', () => {
+                    if(el.classList.contains('currency-button')) {
+                         activateCurrencyButton(el.dataset.currencySymbol);
+                         calculateAndDisplay();
+                    }
+                });
+            });
+
+            toggleEarningsBreakdownBtn.addEventListener('click', () => {
+                isEarningsBreakdownExpanded = !isEarningsBreakdownExpanded;
+                earningsBreakdownContent.classList.toggle('expanded', isEarningsBreakdownExpanded);
+                toggleEarningsBreakdownBtn.classList.toggle('expanded', isEarningsBreakdownExpanded);
+                saveFormData();
+            });
+
+            toggleTradingVolumeBreakdownBtn.addEventListener('click', () => {
+                isTradingVolumeBreakdownExpanded = !isTradingVolumeBreakdownExpanded;
+                tradingVolumeBreakdownContent.classList.toggle('expanded', isTradingVolumeBreakdownExpanded);
+                toggleTradingVolumeBreakdownBtn.classList.toggle('expanded', isTradingVolumeBreakdownExpanded);
+                saveFormData();
+            });
+            
+            document.addEventListener('keydown', e => e.key === 'Enter' && (e.preventDefault(), calculateAndDisplay()));
+            calculateBtn.addEventListener('click', calculateAndDisplay);
+
+            loadFormData();
+        });
+    </script>
+</body>
+</html>
