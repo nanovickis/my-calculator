@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Advanced Calculator</title>
-    <!-- Font Awesome for caret icon -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Embedded CSS -->
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -52,7 +50,7 @@
             border-bottom: 2px solid #ff9900;
             margin-bottom: -2px;
         }
-        
+
         .tab-content {
             display: none;
         }
@@ -85,7 +83,7 @@
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            gap: 10px; /* COMPACT: Reduced gap */
+            gap: 10px;
         }
 
         .calculator-container {
@@ -122,16 +120,28 @@
             outline: none;
         }
 
+        /* Principal amount input alignment */
         .input-with-symbol {
             display: flex;
             align-items: center;
             background-color: #4a4a4a;
             border: 1px solid #555;
             border-radius: 6px;
-            padding-left: 10px;
+            padding: 0 10px;
         }
-        .input-with-symbol span { color: #ccc; margin-right: 8px; }
-        .input-with-symbol input { border: none; background: transparent; flex-grow: 1; padding-left: 0; }
+        .input-with-symbol span {
+            color: #ccc;
+            font-size: 1em;
+            white-space: nowrap;
+            margin-left: 8px;
+        }
+        .input-with-symbol input {
+            border: none;
+            background: transparent;
+            flex-grow: 1;
+            padding: 10px 0;
+            text-align: left;
+        }
 
         .currency-selector { display: flex; gap: 8px; flex-wrap: wrap; }
         .currency-button {
@@ -145,6 +155,7 @@
         }
         .currency-button.active { background-color: #ff9900; border-color: #ff9900; color: #fff; }
 
+        /* Interest rate input alignment */
         .rate-input-group {
             display: flex;
             align-items: center;
@@ -154,32 +165,36 @@
             border-radius: 6px;
             padding: 0 10px;
         }
+        
         .rate-input-group input, .rate-input-group select {
             border: none;
             background: transparent;
-            flex-grow: 1;
-            width: auto;
             padding: 10px 0;
         }
-        .rate-input-group .rate-period-label { color: #ccc; font-size: 0.9em; white-space: nowrap; margin-left: 5px; }
+        
+        .rate-input-group #interestRate,
+        .rate-input-group #days,
+        .rate-input-group #tvInterestRate,
+        .rate-input-group #tvTargetVolume,
+        .rate-input-group #tvPrincipal {
+            flex-grow: 1;
+            text-align: left;
+            width: auto;
+        }
+        
+        .rate-input-group .rate-period-label {
+            color: #ccc;
+            font-size: 0.9em;
+            white-space: nowrap;
+            margin-left: 8px;
+        }
 
         .static-reinvest-rate { color: #f0f0f0; font-weight: bold; padding: 10px 0; display: flex; align-items: center; flex-grow: 1; white-space: nowrap; }
         .static-reinvest-rate .rate-period-label { color: #ccc; font-size: 0.9em; margin-left: 5px; }
 
         .calculate-button {
-            width: 100%;
-            padding: 14px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.1em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-            margin-top: 15px;
+            display: none; /* Hide the button */
         }
-        .calculate-button:hover { background-color: #45a049; }
 
         .remember-data-group { display: flex; align-items: center; margin: 15px 0 20px 0; }
         .remember-data-group label { margin-bottom: 0; font-size: 1em; cursor: pointer; }
@@ -200,7 +215,6 @@
         }
         .message-box.show { opacity: 1; }
 
-        /* --- Results Section Styles --- */
         .results-section h2, .results-section h3 {
             color: #ff9900; font-weight: bold; margin-bottom: 10px;
             padding-bottom: 0; border-bottom: none;
@@ -208,11 +222,10 @@
         .results-section h2 { font-size: 1.6em; }
         .results-section h3 { font-size: 1.4em; }
 
-        .results-divider { border: none; border-top: 1px solid #555; margin: 10px 0 10px 0; } /* COMPACT: Reduced margin */
-
-        .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 15px; align-items: baseline; } /* COMPACT: Reduced gap */
-        .grid-item { display: flex; flex-direction: column; margin-bottom: 5px; } /* COMPACT: Added margin-bottom */
-        .grid-item .result-label { font-size: 0.85em; color: #aaa; margin-bottom: 2px; } 
+        .results-divider { border: none; border-top: 1px solid #555; margin: 10px 0 10px 0; }
+        .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 15px; align-items: baseline; }
+        .grid-item { display: flex; flex-direction: column; margin-bottom: 5px; }
+        .grid-item .result-label { font-size: 0.85em; color: #aaa; margin-bottom: 2px; }
         .grid-item .result-value { font-size: 1.3em; font-weight: bold; color: #f0f0f0; margin-top: 0; }
         
         .result-value.green { color: #4CAF50; }
@@ -220,11 +233,10 @@
         .result-value.blue { color: #2196F3; }
         .right-align { text-align: right; }
 
-        .initial-balance { margin-top: 10px; text-align: right; } /* COMPACT: Reduced margin */
-        .initial-balance .result-label { font-size: 0.85em; color: #aaa; margin-bottom: 2px; } 
+        .initial-balance { margin-top: 10px; text-align: right; }
+        .initial-balance .result-label { font-size: 0.85em; color: #aaa; margin-bottom: 2px; }
 
-        /* --- Expandable Breakdown Styles --- */
-        .expandable-section { margin-top: 0; background-color: #2b2b2b; border-radius: 8px; overflow: hidden; padding: 8px 15px; } /* COMPACT: Reduced padding */
+        .expandable-section { margin-top: 0; background-color: #2b2b2b; border-radius: 8px; overflow: hidden; padding: 8px 15px; }
         .toggle-breakdown-btn {
             width: 100%; background: transparent; color: #ff9900; border: none; padding: 8px 0;
             font-size: 1em; font-weight: bold; text-align: left; cursor: pointer; display: flex;
@@ -255,14 +267,12 @@
         .no-data { color: #aaa; text-align: center; padding: 10px 0; }
         .small-note { font-size: 0.8em; color: #aaa; margin-top: 8px; line-height: 1.3; }
         
-        /* --- Trading Volume Tab Specific --- */
         #tvResults .result-value.large { font-size: 2.5em; color: #4CAF50; }
-        #tvResults .grid-item.days-needed { align-items: center; margin-bottom: 10px; } /* COMPACT: Reduced margin */
-        .results-section.trading-volume-results { background-color: #2b2b2b; border-radius: 8px; padding: 10px 15px; } /* COMPACT: Reduced padding */
+        #tvResults .grid-item.days-needed { align-items: center; margin-bottom: 10px; }
+        .results-section.trading-volume-results { background-color: #2b2b2b; border-radius: 8px; padding: 10px 15px; }
         .results-section.trading-volume-results h3 { color: #ff9900; margin: 0 0 10px 0; }
 
 
-        /* --- Responsive Styles --- */
         @media (max-width: 950px) {
             .main-layout-container { flex-direction: column; }
         }
@@ -281,7 +291,6 @@
             .initial-balance { margin-top: 15px; }
             .expandable-section, .results-section.trading-volume-results { padding: 8px 10px; }
 
-            /* Stacked table for mobile */
             .breakdown-table, .breakdown-table tbody, .breakdown-table tr, .breakdown-table td, .breakdown-table th {
                 display: block; width: 100%; text-align: right;
             }
@@ -298,15 +307,11 @@
 </head>
 <body>
     <div class="main-container">
-        <!-- Tab Navigation -->
         <div class="tab-navigation">
             <button class="tab-button active" data-tab="calculationsTab">Calculations</button>
             <button class="tab-button" data-tab="tradingVolumeTab">Trading Volume</button>
         </div>
 
-        <!-- #################### -->
-        <!-- CALCULATIONS TAB   -->
-        <!-- #################### -->
         <div id="calculationsTab" class="tab-content active">
             <div class="main-layout-container">
                 <div class="calculator-left-side">
@@ -323,21 +328,15 @@
                         <div class="input-group">
                             <label for="principal">Principal amount:</label>
                             <div class="input-with-symbol">
+                                <input type="number" id="principal" value="500" min="0" data-persist="true" autocomplete="off">
                                 <span id="principalSymbol">USDT</span>
-                                <input type="number" id="principal" value="1000" min="0" data-persist="true" autocomplete="off">
                             </div>
                         </div>
                         <div class="input-group">
                             <label for="interestRate">Interest rate:</label>
                             <div class="rate-input-group">
-                                <select id="interestRate" data-persist="true">
-                                    <option value="1.3" selected>1.3%</option>
-                                    <option value="1.95">1.95%</option>
-                                    <option value="2.6">2.6%</option>
-                                    <option value="3.25">3.25%</option>
-                                    <option value="3.9">3.9%</option>
-                                </select>
-                                <span class="rate-period-label">daily</span>
+                                <input type="number" id="interestRate" value="1.3" min="0" step="0.01" data-persist="true" autocomplete="off">
+                                <span class="rate-period-label">% daily</span>
                             </div>
                         </div>
                         <div class="input-group">
@@ -360,7 +359,6 @@
                             <label for="rememberDataCheckbox">Remember data for next time</label>
                         </div>
                         <div id="messageBox" class="message-box"></div>
-                        <button class="calculate-button" id="calculateBtn">Calculate</button>
                     </div>
                 </div>
                 <div class="results-right-side">
@@ -383,10 +381,6 @@
                         <p class="small-note" id="tradingVolumeNote"></p>
                     </div>
                     <div class="expandable-section">
-                        <button class="toggle-breakdown-btn" id="toggleTradingVolumeBreakdownBtn">Trading Volume Breakdown Daily <i class="fas fa-caret-down"></i></button>
-                        <div class="breakdown-content" id="tradingVolumeBreakdownContent"><p class="no-data">Calculate first.</p></div>
-                    </div>
-                    <div class="expandable-section">
                         <button class="toggle-breakdown-btn" id="toggleEarningsBreakdownBtn">Earnings Breakdown Daily <i class="fas fa-caret-down"></i></button>
                         <div class="breakdown-content" id="dailyBreakdownContent"><p class="no-data">Calculate first.</p></div>
                     </div>
@@ -394,9 +388,6 @@
             </div>
         </div>
 
-        <!-- #################### -->
-        <!-- TRADING VOLUME TAB -->
-        <!-- #################### -->
         <div id="tradingVolumeTab" class="tab-content">
             <div class="main-layout-container">
                 <div class="calculator-left-side">
@@ -413,28 +404,22 @@
                         <div class="input-group">
                             <label for="tvPrincipal">Principal amount:</label>
                             <div class="input-with-symbol">
-                                <span id="tvPrincipalSymbol">USDT</span>
                                 <input type="number" id="tvPrincipal" value="1000" min="0" data-persist-tv="true" autocomplete="off">
+                                <span id="tvPrincipalSymbol">USDT</span>
                             </div>
                         </div>
                         <div class="input-group">
                             <label for="tvInterestRate">Interest rate:</label>
                             <div class="rate-input-group">
-                                <select id="tvInterestRate" data-persist-tv="true">
-                                    <option value="1.3" selected>1.3%</option>
-                                    <option value="1.95">1.95%</option>
-                                    <option value="2.6">2.6%</option>
-                                    <option value="3.25">3.25%</option>
-                                    <option value="3.9">3.9%</option>
-                                </select>
-                                <span class="rate-period-label">daily</span>
+                                <input type="number" id="tvInterestRate" value="1.3" min="0" step="0.01" data-persist-tv="true" autocomplete="off">
+                                <span class="rate-period-label">% daily</span>
                             </div>
                         </div>
                         <div class="input-group">
                             <label for="tvTargetVolume">Target trading volume:</label>
                             <div class="input-with-symbol">
-                                <span id="tvTargetVolumeSymbol">USDT</span>
                                 <input type="number" id="tvTargetVolume" value="1000" min="0" data-persist-tv="true" autocomplete="off">
+                                <span id="tvTargetVolumeSymbol">USDT</span>
                             </div>
                         </div>
                         <div class="input-group">
@@ -446,7 +431,6 @@
                             <label for="tvRememberData">Remember data for next time</label>
                         </div>
                         <div id="tvMessageBox" class="message-box"></div>
-                        <button class="calculate-button" id="calculateTvBtn">Calculate Days</button>
                     </div>
                 </div>
                 <div class="results-right-side">
@@ -461,7 +445,7 @@
                             <div class="grid-item"><p class="result-label">Target Volume</p><p class="result-value" id="tvTargetResult">USDT 0.00</p></div>
                             <div class="grid-item right-align"><p class="result-label">Projected End Date</p><p class="result-value" id="tvEndDate">N/A</p></div>
                             <div class="grid-item"><p class="result-label">Initial Principal</p><p class="result-value" id="tvPrincipalResult">USDT 0.00</p></div>
-                             <div class="grid-item right-align"><p class="result-label">Daily Interest Rate</p><p class="result-value" id="tvRateResult">0.0%</p></div>
+                            <div class="grid-item right-align"><p class="result-label">Daily Interest Rate</p><p class="result-value" id="tvRateResult">0.0%</p></div>
                             <div class="grid-item"><p class="result-label">Total interest / earnings</p><p class="result-value orange" id="tvTotalEarnings">USDT 0.00</p></div>
                             <div class="grid-item right-align"><p class="result-label">Investment value</p><p class="result-value green" id="tvInvestmentValue">USDT 0.00</p></div>
                             <div class="grid-item" style="grid-column: 1 / -1; text-align: center; margin-top: 10px;"><p class="result-label">Percentage profit</p><p class="result-value orange" id="tvPercentageProfit">0.0%</p></div>
@@ -472,16 +456,13 @@
         </div>
     </div>
 
-    <!-- Embedded JavaScript -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- Global Elements & State ---
             const tabButtons = document.querySelectorAll('.tab-button');
             const tabContents = document.querySelectorAll('.tab-content');
             const CALC_STORAGE_KEY = 'dailyCompoundCalcData_v3';
             const TV_STORAGE_KEY = 'tradingVolumeCalcData_v1';
 
-            // --- Utility Functions ---
             const showMessage = (el, message) => {
                 el.textContent = message;
                 el.classList.add('show');
@@ -495,8 +476,7 @@
                 return `${day} ${month} '${year}`;
             };
             const getTodayDateISO = () => new Date().toISOString().split('T')[0];
-            
-            // --- Tab Switching Logic ---
+
             tabButtons.forEach(button => {
                 button.addEventListener('click', () => {
                     tabButtons.forEach(btn => btn.classList.remove('active'));
@@ -507,17 +487,13 @@
                 });
             });
 
-            // ##################################
-            // ### CALCULATIONS TAB LOGIC ###
-            // ##################################
             const initCalculationsTab = () => {
                 const tabNode = document.getElementById('calculationsTab');
                 if (!tabNode) return;
 
                 const principalInput = tabNode.querySelector('#principal');
-                const interestRateSelect = tabNode.querySelector('#interestRate');
+                const interestRateInput = tabNode.querySelector('#interestRate');
                 const daysInput = tabNode.querySelector('#days');
-                const calculateBtn = tabNode.querySelector('#calculateBtn');
                 const rememberDataCheckbox = tabNode.querySelector('#rememberDataCheckbox');
                 const startDateInput = tabNode.querySelector('#startDate');
                 const currencyButtons = tabNode.querySelectorAll('#currencySelector .currency-button');
@@ -536,11 +512,8 @@
                 const tradingVolumeNoteSpan = tabNode.querySelector('#tradingVolumeNote');
                 const toggleEarningsBreakdownBtn = tabNode.querySelector('#toggleEarningsBreakdownBtn');
                 const earningsBreakdownContent = tabNode.querySelector('#dailyBreakdownContent');
-                const toggleTradingVolumeBreakdownBtn = tabNode.querySelector('#toggleTradingVolumeBreakdownBtn');
-                const tradingVolumeBreakdownContent = tabNode.querySelector('#tradingVolumeBreakdownContent');
-                
+
                 let isEarningsBreakdownExpanded = false;
-                let isTradingVolumeBreakdownExpanded = false;
 
                 const activateCurrencyButton = (symbolToActivate) => {
                     currencyButtons.forEach(btn => {
@@ -559,13 +532,12 @@
                     const activeCurrency = tabNode.querySelector('#currencySelector .currency-button.active');
                     const data = {
                         principal: principalInput.value,
-                        interestRate: interestRateSelect.value,
+                        interestRate: interestRateInput.value,
                         days: daysInput.value,
                         currency: activeCurrency ? activeCurrency.dataset.currencySymbol : 'USDT',
                         startDate: startDateInput.value,
                         remember: rememberDataCheckbox.checked,
                         isEarningsExpanded: isEarningsBreakdownExpanded,
-                        isTradingVolumeExpanded: isTradingVolumeBreakdownExpanded
                     };
                     localStorage.setItem(CALC_STORAGE_KEY, JSON.stringify(data));
                 };
@@ -576,28 +548,23 @@
                     rememberDataCheckbox.checked = !!data.remember;
 
                     if (rememberDataCheckbox.checked) {
-                        principalInput.value = data.principal || '1000';
-                        interestRateSelect.value = data.interestRate || '1.3';
+                        principalInput.value = data.principal || '500';
+                        interestRateInput.value = data.interestRate || '2.0';
                         daysInput.value = data.days || '30';
                         startDateInput.value = data.startDate || getTodayDateISO();
                         activateCurrencyButton(data.currency || 'USDT');
                         isEarningsBreakdownExpanded = !!data.isEarningsExpanded;
-                        isTradingVolumeBreakdownExpanded = !!data.isTradingVolumeExpanded;
                     } else {
-                        principalInput.value = '1000';
-                        interestRateSelect.value = '1.3';
+                        principalInput.value = '500';
+                        interestRateInput.value = '2.0';
                         daysInput.value = '30';
                         startDateInput.value = getTodayDateISO();
                         activateCurrencyButton('USDT');
                         isEarningsBreakdownExpanded = false;
-                        isTradingVolumeBreakdownExpanded = false;
                     }
-                    
+
                     earningsBreakdownContent.classList.toggle('expanded', isEarningsBreakdownExpanded);
                     toggleEarningsBreakdownBtn.classList.toggle('expanded', isEarningsBreakdownExpanded);
-                    tradingVolumeBreakdownContent.classList.toggle('expanded', isTradingVolumeBreakdownExpanded);
-                    toggleTradingVolumeBreakdownBtn.classList.toggle('expanded', isTradingVolumeBreakdownExpanded);
-                    
                     calculateAndDisplay();
                 };
 
@@ -629,24 +596,27 @@
                         <td data-label="Balance" class="col-balance">${symbol} ${item.balance.toFixed(2)}</td>`;
                 };
 
-                const renderTradingVolumeRow = (row, item, symbol) => {
-                     row.innerHTML = `
-                        <td data-label="Date/Day" class="col-date-day">${item.date}<br>Day ${item.day}</td>
-                        <td data-label="Per Trade">${symbol} ${item.tradingValuePerTrade.toFixed(2)}</td>
-                        <td data-label="Per Day" class="col-per-day">${symbol} ${item.tradingValuePerDay.toFixed(2)}</td>
-                        <td data-label="Total Volume" class="col-total-volume">${symbol} ${item.totalTradingVolume.toFixed(2)}</td>`;
-                };
-
                 const calculateAndDisplay = () => {
                     const principal = parseFloat(principalInput.value);
-                    const interestRate = parseFloat(interestRateSelect.value);
+                    const interestRate = parseFloat(interestRateInput.value);
                     const days = parseInt(daysInput.value, 10);
                     const symbol = principalSymbol.textContent;
 
                     if (isNaN(principal) || principal <= 0 || isNaN(interestRate) || interestRate < 0 || isNaN(days) || days <= 0) {
+                        // Clear results
+                        projectionHeading.textContent = `Projection for 0 days`;
+                        investmentValueSpan.textContent = `${symbol} 0.00`;
+                        totalEarningsSpan.textContent = `${symbol} 0.00`;
+                        percentageProfitSpan.textContent = `0.0%`;
+                        totalDaysResultSpan.textContent = `0`;
+                        dailyEffectiveRateSpan.textContent = `0.0%`;
+                        endDateSpan.textContent = `N/A`;
+                        initialBalanceSpan.textContent = `${symbol} 0.00`;
+                        totalTradingVolumeSpan.textContent = `${symbol} 0.00`;
+                        tradingVolumeNoteSpan.innerHTML = `*Your capital is ${symbol} 0.00<br>*Capital grows by 0.0% daily.<br>*Interest rate does not meet trading signal count.<br>*Trading volume is: (2% * Current capital) * Trading signals * Duration in days.`;
                         return;
                     }
-                    
+
                     const interestRateDecimal = interestRate / 100;
                     let currentAmount = principal;
                     let totalInterestEarned = 0;
@@ -673,64 +643,48 @@
                     initialBalanceSpan.textContent = `${symbol} ${principal.toFixed(2)}`;
                     renderBreakdown(earningsBreakdownContent, earningsData, ['Date/Day', 'Earnings', 'Total', 'Balance'], renderEarningsRow, symbol);
 
-                    // --- Trading Volume Calculation using Formula ---
-                    const tradingSignalCount = Math.max(0, Math.round(interestRate / 0.65));
-                    const v0_tv = 0.01 * principal * tradingSignalCount;
+                    const tradingSignalCount = Math.max(0, Math.round(interestRate / 1.0));
+                    const v0_tv = 0.02 * principal * tradingSignalCount;
                     let totalAccumulatedVolume;
                     if (interestRateDecimal > 0) {
                         totalAccumulatedVolume = v0_tv * ( (Math.pow(1 + interestRateDecimal, days) - 1) / interestRateDecimal );
                     } else {
                         totalAccumulatedVolume = v0_tv * days;
                     }
-                    totalTradingVolumeSpan.textContent = `${symbol} ${totalAccumulatedVolume.toFixed(2)}`;
-                    tradingVolumeNoteSpan.innerHTML = `*Your capital is ${symbol} ${principal.toFixed(2)}<br>*Capital grows by ${interestRate}% daily.<br>*You have ${tradingSignalCount} trading signals.<br>*Trading volume is: (1% * Current capital) * Trading signals * Duration in days.`;
-                    
-                    // --- Trading Volume Breakdown (still needs loop) ---
-                    let accumulatedTradingVolumeBreakdown = 0;
-                    let currentCapitalForTV = principal;
-                    const tradingVolumeData = [];
-                    for (let i = 0; i < days; i++) {
-                        const tradingValuePerTrade = 0.01 * currentCapitalForTV;
-                        const tradingValuePerDay = tradingValuePerTrade * tradingSignalCount;
-                        accumulatedTradingVolumeBreakdown += tradingValuePerDay;
-                        const loopDate = new Date(startDate);
-                        loopDate.setDate(startDate.getDate() + i);
-                        tradingVolumeData.push({ day: i + 1, date: formatDateForBreakdown(loopDate), tradingValuePerTrade, tradingValuePerDay, totalTradingVolume: accumulatedTradingVolumeBreakdown });
-                        currentCapitalForTV += (currentCapitalForTV * interestRateDecimal);
-                    }
-                    renderBreakdown(tradingVolumeBreakdownContent, tradingVolumeData, ['Date/Day', 'Per Trade', 'Per Day', 'Total Volume'], renderTradingVolumeRow, symbol);
 
+                    if (Number.isInteger(interestRate) && interestRate > 0) {
+                        totalTradingVolumeSpan.textContent = `${symbol} ${totalAccumulatedVolume.toFixed(2)}`;
+                        tradingVolumeNoteSpan.innerHTML = `*Your capital is ${symbol} ${principal.toFixed(2)}<br>*Capital grows by ${interestRate}% daily.<br>*You have ${tradingSignalCount} trading signals.<br>*Trading volume is: (2% * Current capital) * Trading signals * Duration in days.`;
+                    } else {
+                        totalTradingVolumeSpan.textContent = `${symbol} 0.00`;
+                        tradingVolumeNoteSpan.innerHTML = `*Your capital is ${symbol} ${principal.toFixed(2)}<br>*Capital grows by ${interestRate}% daily.<br>*Interest rate does not meet trading signal count.<br>*Trading volume is: (2% * Current capital) * Trading signals * Duration in days.`;
+                    }
+                    
                     saveFormData();
                 };
-
-                currencyButtons.forEach(button => button.addEventListener('click', () => {
-                    activateCurrencyButton(button.dataset.currencySymbol);
-                    calculateAndDisplay();
-                }));
-                [principalInput, interestRateSelect, daysInput, startDateInput, rememberDataCheckbox].forEach(el => {
-                    el.addEventListener('change', calculateAndDisplay);
-                    el.addEventListener('input', calculateAndDisplay);
-                });
-                calculateBtn.addEventListener('click', calculateAndDisplay);
+                
+                // Add event listener for the toggle button
                 toggleEarningsBreakdownBtn.addEventListener('click', () => {
                     isEarningsBreakdownExpanded = !isEarningsBreakdownExpanded;
                     earningsBreakdownContent.classList.toggle('expanded', isEarningsBreakdownExpanded);
                     toggleEarningsBreakdownBtn.classList.toggle('expanded', isEarningsBreakdownExpanded);
                     saveFormData();
                 });
-                toggleTradingVolumeBreakdownBtn.addEventListener('click', () => {
-                    isTradingVolumeBreakdownExpanded = !isTradingVolumeBreakdownExpanded;
-                    tradingVolumeBreakdownContent.classList.toggle('expanded', isTradingVolumeBreakdownExpanded);
-                    toggleTradingVolumeBreakdownBtn.classList.toggle('expanded', isTradingVolumeBreakdownExpanded);
-                    saveFormData();
+
+                currencyButtons.forEach(button => button.addEventListener('click', () => {
+                    activateCurrencyButton(button.dataset.currencySymbol);
+                    calculateAndDisplay();
+                }));
+                
+                // Update input listeners to trigger calculation on input
+                [principalInput, interestRateInput, daysInput, rememberDataCheckbox, startDateInput].forEach(el => {
+                    el.addEventListener('change', calculateAndDisplay);
+                    el.addEventListener('input', calculateAndDisplay);
                 });
 
                 loadFormData();
             };
 
-            // ##################################
-            // ### TRADING VOLUME TAB LOGIC ###
-            // ##################################
             const initTradingVolumeTab = () => {
                 const tabNode = document.getElementById('tradingVolumeTab');
                 if (!tabNode) return;
@@ -741,7 +695,6 @@
                     targetVolume: tabNode.querySelector('#tvTargetVolume'),
                     startDate: tabNode.querySelector('#tvStartDate'),
                     rememberData: tabNode.querySelector('#tvRememberData'),
-                    calculateBtn: tabNode.querySelector('#calculateTvBtn'),
                     messageBox: tabNode.querySelector('#tvMessageBox'),
                     currencyButtons: tabNode.querySelectorAll('#tvCurrencySelector .currency-button'),
                     principalSymbol: tabNode.querySelector('#tvPrincipalSymbol'),
@@ -790,15 +743,15 @@
                     tv.rememberData.checked = !!data.remember;
 
                     if (tv.rememberData.checked) {
-                        tv.principal.value = data.principal || '1000';
-                        tv.interestRate.value = data.interestRate || '1.3';
-                        tv.targetVolume.value = data.targetVolume || '1000';
+                        tv.principal.value = data.principal || '500';
+                        tv.interestRate.value = data.interestRate || '2.0';
+                        tv.targetVolume.value = data.targetVolume || '500';
                         tv.startDate.value = data.startDate || getTodayDateISO();
                         activateTvCurrencyButton(data.currency || 'USDT');
                     } else {
-                        tv.principal.value = '1000';
-                        tv.interestRate.value = '1.3';
-                        tv.targetVolume.value = '1000';
+                        tv.principal.value = '500';
+                        tv.interestRate.value = '2.0';
+                        tv.targetVolume.value = '500';
                         tv.startDate.value = getTodayDateISO();
                         activateTvCurrencyButton('USDT');
                     }
@@ -812,11 +765,20 @@
                     const symbol = tv.principalSymbol.textContent;
 
                     if (isNaN(principal) || principal <= 0 || isNaN(interestRate) || interestRate < 0 || isNaN(targetVolume) || targetVolume <= 0) {
+                        // Clear results
+                        tv.daysNeeded.textContent = '0';
+                        tv.targetResult.textContent = `${symbol} 0.00`;
+                        tv.principalResult.textContent = `${symbol} 0.00`;
+                        tv.rateResult.textContent = '0.0%';
+                        tv.totalEarnings.textContent = `${symbol} 0.00`;
+                        tv.investmentValue.textContent = `${symbol} 0.00`;
+                        tv.percentageProfit.textContent = '0.0%';
+                        tv.endDate.textContent = 'N/A';
                         return;
                     }
 
                     const interestRateDecimal = interestRate / 100;
-                    const tradingSignalCount = Math.max(0, Math.round(interestRate / 0.65));
+                    const tradingSignalCount = Math.max(0, Math.round(interestRate / 1.0));
                     
                     if (tradingSignalCount === 0) {
                         showMessage(tv.messageBox, "Interest rate is too low to generate trading signals.");
@@ -824,7 +786,7 @@
                         return;
                     }
 
-                    const v0_tv = 0.01 * principal * tradingSignalCount;
+                    const v0_tv = 0.02 * principal * tradingSignalCount;
                     if (v0_tv <= 0) {
                         tv.daysNeeded.textContent = '∞';
                         return;
@@ -842,7 +804,6 @@
                         days = 0;
                     }
                     
-                    // Recalculate final values based on the determined number of days
                     const finalInvestmentValue = principal * Math.pow(1 + interestRateDecimal, days);
                     const totalInterestEarned = finalInvestmentValue - principal;
                     const percentageProfit = principal > 0 ? (totalInterestEarned / principal) * 100 : 0;
@@ -858,7 +819,7 @@
                     if (days > 0 && days <= 10000) {
                         const startDate = new Date(tv.startDate.value + 'T00:00:00');
                         const endDateObj = new Date(startDate);
-                        endDateObj.setDate(startDate.getDate() + days -1);
+                        endDateObj.setDate(startDate.getDate() + days - 1);
                         tv.endDate.textContent = formatDate(endDateObj);
                     } else {
                         tv.endDate.textContent = 'N/A';
@@ -875,19 +836,17 @@
                 
                 tv.principal.addEventListener('input', () => {
                     tv.targetVolume.value = tv.principal.value;
+                    calculateDaysForVolume();
                 });
 
+                // Update input listeners to trigger calculation on input
                 tabNode.querySelectorAll('[data-persist-tv="true"]').forEach(el => {
-                     el.addEventListener('change', calculateDaysForVolume);
-                     el.addEventListener('input', calculateDaysForVolume);
+                    el.addEventListener('change', calculateDaysForVolume);
+                    el.addEventListener('input', calculateDaysForVolume);
                 });
-
-                tv.calculateBtn.addEventListener('click', calculateDaysForVolume);
-                
                 loadTvData();
             };
 
-            // --- Initial Load ---
             initCalculationsTab();
             initTradingVolumeTab();
         });
